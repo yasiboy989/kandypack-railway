@@ -26,7 +26,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT * FROM user_account where user_name = %s", (username,))
+        cur.execute("SELECT * FROM user_account where user_name = %s;", (username,))
 
         user = cur.fetchone()
 
@@ -41,13 +41,13 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         cur.close()
         conn.close()
 
-@app.post("/auth/login", tags=["Authentication"])
+@app.post("/auth/login", tags=["Authentication & Profile"])
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT user_id,employee_id, role_id,user_name, password_hash FROM user_account where user_name = %s",(form_data.username,))
+        cur.execute("SELECT user_id,employee_id, role_id,user_name, password_hash FROM user_account where user_name = %s;",(form_data.username,))
         user = cur.fetchone()
 
         if not user:
@@ -73,11 +73,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         cur.close()
         conn.close()
 
-@app.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT, tags = ["Authentication"])
+@app.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT, tags = ["Authentication & Profile"])
 def logout():
     return
 
-@app.get("/auth/profile", response_model=schemas.UserResponse, tags=["Authentication"])
+@app.get("/auth/profile", response_model=schemas.UserResponse, tags=["Authentication & Profile"])
 def get_profile(current_user: list = Depends(get_current_user)):
 
     user_id = current_user[0]
@@ -89,7 +89,7 @@ def get_profile(current_user: list = Depends(get_current_user)):
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT role_name FROM role WHERE role_id = %s",(role_id,))
+        cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(role_id,))
         role = cur.fetchone()
 
         return{
@@ -106,7 +106,7 @@ def get_profile(current_user: list = Depends(get_current_user)):
         cur.close()
         conn.close()
 
-@app.put("/auth/profile", response_model=schemas.UserResponse, tags=["Authentication"])
+@app.put("/auth/profile", response_model=schemas.UserResponse, tags=["Authentication & Profile"])
 def update_profile(profile: schemas.UserPorfileUpdate, current_user: list = Depends(get_current_user)):
     user_id = current_user[0]
     role_id = current_user[2]
@@ -118,21 +118,21 @@ def update_profile(profile: schemas.UserPorfileUpdate, current_user: list = Depe
     cur = conn.cursor()
 
     try:
-        cur.execute("UPDATE user_account SET email= %s WHERE user_id=%s RETURNING user_id",(email, user_id,))
+        cur.execute("UPDATE user_account SET email= %s WHERE user_id=%s RETURNING user_id;",(email, user_id,))
         updated = cur.fetchone()
         conn.commit()
 
         if not updated:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         
-        cur.execute("UPDATE employee SET phone= %s WHERE employee_id=%s RETURNING employee_id",(profile.phone, employee_id,))
+        cur.execute("UPDATE employee SET phone= %s WHERE employee_id=%s RETURNING employee_id;",(profile.phone, employee_id,))
         updated = cur.fetchone()
         conn.commit()
 
         if not updated:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
         
-        cur.execute("SELECT role_name FROM role WHERE role_id = %s",(role_id,))
+        cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(role_id,))
         role = cur.fetchone()
         return {
             "user_id": user_id,
@@ -144,6 +144,44 @@ def update_profile(profile: schemas.UserPorfileUpdate, current_user: list = Depe
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+ 
+@app.get("/users",tags = ["User & Role Management (Admin)"])
+def get_users(current_user: list = Depends(get_current_user)):
+
+    role_id = current_user[2]
+
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(role_id,))
+        current_user_role = cur.fetchone()[0]
+        if current_user_role == "Admin":
+            cur.execute("SELECT user_id, user_name, email, role_id FROM user_account;")
+            rows = cur.fetchall()
+
+            users = []
+            for row in rows:
+                cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(row[3],))
+                role = cur.fetchone()
+                user : schemas.UserResponse = {
+                    "user_id": row[0],
+                    "user_name":row[1],
+                    "email": row[2],
+                    "role": role[0]
+                }
+                users.append(user)
+
+            return users
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+    
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
     finally:
         cur.close()
         conn.close()
