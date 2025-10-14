@@ -12,3 +12,7 @@ class UserResponse(BaseModel):
     user_name: str
     email: EmailStr
     role: str
+
+class UserPorfileUpdate(BaseModel):
+    email: EmailStr
+    phone: str

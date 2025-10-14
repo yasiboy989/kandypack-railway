@@ -3,9 +3,11 @@ from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jose import JWTError, jwt 
 from datetime import timedelta
 from sqlalchemy.orm import Session
-from Database import database,models,schemas
+from Database import database,models
 from Authenticaton import auth
 from datetime import datetime
+
+from Schemas import schemas
 
 app = FastAPI()
 
@@ -62,7 +64,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return {"message": "User created successfully", "user_id": new_user.user_id}
 
-@app.post("/auth/login")
+@app.post("/auth/login", tags=["Authentication"])
 def login(form_data: OAuth2PasswordRequestForm = Depends() ,db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.user_name == form_data.username).first()
     if not user or not auth.verify_password(form_data.password, user.password_hash):
@@ -73,17 +75,35 @@ def login(form_data: OAuth2PasswordRequestForm = Depends() ,db: Session = Depend
 
     user.last_login = datetime.now()
     db.commit()
+    db.refresh(user)
 
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT)
+@app.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT, tags=["Authentication"])
 def logout():
     return
 
-@app.get("/auth/profile", response_model = schemas.UserResponse)
+@app.get("/auth/profile", response_model = schemas.UserResponse, tags=["Authentication"])
 def get_profile(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     role = db.query(models.Role).filter(models.Role.role_id == current_user.role_id).first()
     return {
+        "user_id": current_user.user_id,
+        "user_name": current_user.user_name,
+        "email": current_user.email,
+        "role": role.role_name
+    }
+
+@app.put("/auth/profile", response_model=schemas.UserResponse, tags=["Authentication"])
+def update_profile(profile: schemas.UserPorfileUpdate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    current_user.email = profile.email
+    employee = db.query(models.Employee).filter(models.Employee.employee_id == current_user.employee_id).first()
+    role = db.query(models.Role).filter(models.Role.role_id == current_user.role_id).first()
+    employee.phone = profile.phone
+
+    db.commit()
+    db.refresh(current_user)
+
+    return{
         "user_id": current_user.user_id,
         "user_name": current_user.user_name,
         "email": current_user.email,
