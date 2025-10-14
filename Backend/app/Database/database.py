@@ -1,8 +1,13 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
 from .config import Config
+import psycopg2
 
-engine = create_engine(Config.DATABASE_URL)
-SessionLocal = sessionmaker(autocommit = False, autoflush=False, bind = engine)
+DB_CONFIG = {
+    "host": Config.DB_HOST,
+    "database": Config.DB_NAME,
+    "user": Config.DB_USER,
+    "password": Config.DB_PASSWORD
+}
 
-Base = declarative_base()
+def get_db_connection():
+    conn = psycopg2.connect(**DB_CONFIG)
+    return conn

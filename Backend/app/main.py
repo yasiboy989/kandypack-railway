@@ -2,10 +2,10 @@ from fastapi import FastAPI,Depends,HTTPException,status
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jose import JWTError, jwt 
 from datetime import timedelta
-from sqlalchemy.orm import Session
-from Database import database,models
+from Database import database
 from Authenticaton import auth
 from datetime import datetime
+from passlib.context import CryptContext
 
 from Schemas import schemas
 
@@ -13,16 +13,7 @@ app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-
-
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, auth.SECRET_KEY, algorithms=auth.ALGORITHM)
         username: str = payload.get("sub")
@@ -31,81 +22,128 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     
-    user = db.query(models.User).filter(models.User.user_name == username).first()
+    conn = database.get_db_connection()
+    cur = conn.cursor()
 
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    try:
+        cur.execute("SELECT * FROM user_account where user_name = %s", (username,))
+
+        user = cur.fetchone()
+
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        return user
     
-    return user
-
-@app.post("/users/create")
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(models.User).filter((models.User.user_name == user.user_name) | (models.User.email == user.email)).first()
-
-    if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail = "Username or email already exists")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
-    hashed_pw = auth.get_password_hash(user.password)
-
-    user_id = len(db.query(models.User).all())+1
-
-    new_user = models.User(
-        user_id = user_id,
-        employee_id = user.employee_id,
-        role_id = user.role_id,
-        user_name = user.user_name,
-        email = user.email,
-        password_hash = hashed_pw,
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return {"message": "User created successfully", "user_id": new_user.user_id}
+    finally:
+        cur.close()
+        conn.close()
 
 @app.post("/auth/login", tags=["Authentication"])
-def login(form_data: OAuth2PasswordRequestForm = Depends() ,db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.user_name == form_data.username).first()
-    if not user or not auth.verify_password(form_data.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail = "Invalid credentials")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT user_id,employee_id, role_id,user_name, password_hash FROM user_account where user_name = %s",(form_data.username,))
+        user = cur.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password")
+        
+        user_id, employee_id, role_id, username, password_hash = user
+
+        if not auth.verify_password(form_data.password,password_hash):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password")
+        
+        access_token_expires = timedelta(minutes=30)
+        access_token = auth.create_access_token(
+            data={"sub": username, "user_id": user_id, "employee_id": employee_id, "role_id":role_id},
+            expires_delta=access_token_expires
+        )
+
+        return {"access_token":access_token, "token_type": "bearer"}
     
-    access_token_expires = timedelta(minutes=30)
-    access_token = auth.create_access_token(data={"sub":user.user_name, "user_id": user.user_id, "role_id": user.role_id},expires_delta=access_token_expires)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
 
-    user.last_login = datetime.now()
-    db.commit()
-    db.refresh(user)
-
-    return {"access_token": access_token, "token_type": "bearer"}
-
-@app.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT, tags=["Authentication"])
+@app.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT, tags = ["Authentication"])
 def logout():
     return
 
-@app.get("/auth/profile", response_model = schemas.UserResponse, tags=["Authentication"])
-def get_profile(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    role = db.query(models.Role).filter(models.Role.role_id == current_user.role_id).first()
-    return {
-        "user_id": current_user.user_id,
-        "user_name": current_user.user_name,
-        "email": current_user.email,
-        "role": role.role_name
-    }
+@app.get("/auth/profile", response_model=schemas.UserResponse, tags=["Authentication"])
+def get_profile(current_user: list = Depends(get_current_user)):
+
+    user_id = current_user[0]
+    role_id = current_user[2]
+    username = current_user[3]
+    email = current_user[5]
+
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id = %s",(role_id,))
+        role = cur.fetchone()
+
+        return{
+            "user_id": user_id,
+            "user_name": username,
+            "email": email,
+            "role": role[0]
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
 
 @app.put("/auth/profile", response_model=schemas.UserResponse, tags=["Authentication"])
-def update_profile(profile: schemas.UserPorfileUpdate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    current_user.email = profile.email
-    employee = db.query(models.Employee).filter(models.Employee.employee_id == current_user.employee_id).first()
-    role = db.query(models.Role).filter(models.Role.role_id == current_user.role_id).first()
-    employee.phone = profile.phone
+def update_profile(profile: schemas.UserPorfileUpdate, current_user: list = Depends(get_current_user)):
+    user_id = current_user[0]
+    role_id = current_user[2]
+    username = current_user[3]
+    email = current_user[5]
+    employee_id = current_user[1]
 
-    db.commit()
-    db.refresh(current_user)
+    conn = database.get_db_connection()
+    cur = conn.cursor()
 
-    return{
-        "user_id": current_user.user_id,
-        "user_name": current_user.user_name,
-        "email": current_user.email,
-        "role": role.role_name
-    }
+    try:
+        cur.execute("UPDATE user_account SET email= %s WHERE user_id=%s RETURNING user_id",(email, user_id,))
+        updated = cur.fetchone()
+        conn.commit()
+
+        if not updated:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        
+        cur.execute("UPDATE employee SET phone= %s WHERE employee_id=%s RETURNING employee_id",(profile.phone, employee_id,))
+        updated = cur.fetchone()
+        conn.commit()
+
+        if not updated:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+        
+        cur.execute("SELECT role_name FROM role WHERE role_id = %s",(role_id,))
+        role = cur.fetchone()
+        return {
+            "user_id": user_id,
+            "user_name": username,
+            "email": email,
+            "role": role[0]
+        }
+    
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
