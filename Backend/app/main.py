@@ -79,3 +79,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends() ,db: Session = Depend
 @app.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout():
     return
+
+@app.get("/auth/profile", response_model = schemas.UserResponse)
+def get_profile(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    role = db.query(models.Role).filter(models.Role.role_id == current_user.role_id).first()
+    return {
+        "user_id": current_user.user_id,
+        "user_name": current_user.user_name,
+        "email": current_user.email,
+        "role": role.role_name
+    }
