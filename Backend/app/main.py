@@ -796,3 +796,31 @@ def create_product(product: schemas.CreateProduct, current_user: list = Depends(
     finally:
         cur.close()
         conn.close()
+
+@app.get("/inventory", tags = ["Products & Inventory"])
+def get_inventory(current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT product_id, available_units FROM product;")
+        rows = cur.fetchall()
+
+        inventories = []
+
+        for row in rows:
+            inventory: schemas.Inventory = {
+                "product_id": row[0],
+                "availableUnits":row[1]
+            }
+            inventories.append(inventory)
+
+        return inventories
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()

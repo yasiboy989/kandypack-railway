@@ -96,3 +96,7 @@ class CreateProduct(BaseModel):
     unitWeight: float
     train_space_per_unit: float
     available_units: float
+
+class Inventory(BaseModel):
+    product_id: int
+    availableUnits: int
