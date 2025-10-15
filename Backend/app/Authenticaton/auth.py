@@ -1,5 +1,5 @@
 from datetime import datetime,timedelta
-from jose import JWSError, jwt 
+from jose import jwt 
 import os
 from dotenv import load_dotenv
 from passlib.context import CryptContext

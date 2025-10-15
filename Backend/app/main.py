@@ -19,9 +19,17 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         payload = jwt.decode(token, auth.SECRET_KEY, algorithms=auth.ALGORITHM)
         username: str = payload.get("sub")
         if not username:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
     
     conn = database.get_db_connection()
     cur = conn.cursor()
@@ -682,6 +690,8 @@ def get_cutomer_orders(cutomer_id:int,current_user: list = Depends(get_current_u
         cur.execute('SELECT order_id, status FROM "Order" WHERE customer_id = %s',(cutomer_id,))
         rows = cur.fetchall()
 
+
+
         orders = []
         for row in rows:
             order: schemas.Order = {
@@ -689,6 +699,9 @@ def get_cutomer_orders(cutomer_id:int,current_user: list = Depends(get_current_u
                 "status": row[1]
             }
             orders.append(order)
+        
+        if not orders:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"No orders found for customer with ID {cutomer_id}")   
         
         return orders
 
@@ -706,6 +719,11 @@ def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_
     cur = conn.cursor()
 
     try:
+        cur.execute("SELECT customer_id FROM customers WHERE customer_id = %s", (customer_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Customer not found")
+
+
         cur.execute('SELECT COUNT(order_id) FROM "Order"')
         order_id = cur.fetchone()[0]+1
         order_date = date.today()
@@ -726,7 +744,8 @@ def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_
             available_units = cur.fetchone()[0] - item.quantity
 
             cur.execute("UPDATE product SET available_units = %s WHERE product_id = %s", (available_units, item.productID,))
-            conn.commit()
+        
+        conn.commit()
 
         cur.execute('SELECT order_id, status FROM "Order" WHERE order_id = %s',(order_id,))
         order_fetch = cur.fetchone()
