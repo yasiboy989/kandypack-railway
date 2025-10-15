@@ -719,9 +719,10 @@ def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT customer_id FROM customers WHERE customer_id = %s", (customer_id,))
-        if not cur.fetchone():
-            raise HTTPException(status_code=404, detail="Customer not found")
+        cur.execute("SELECT customer_id FROM customer WHERE customer_id = %s", (customer_id,))
+        existing_customer = cur.fetchone()
+        if not existing_customer:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Customer with ID {customer_id} not found")
 
 
         cur.execute('SELECT COUNT(order_id) FROM "Order"')
@@ -926,6 +927,10 @@ def allocate_train(order_id: int, current_user: list = Depends(get_current_user)
     cur = conn.cursor()
 
     try:
+        cur.execute('SELECT order_id FROM "Order" WHERE order_id = %s;', (order_id,))
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Order with ID {order_id} not found")
+        
         cur.execute("CALL allocate_order_to_train(%s);", (order_id,))
         conn.commit()
 
