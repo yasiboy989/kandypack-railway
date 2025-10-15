@@ -64,6 +64,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
             expires_delta=access_token_expires
         )
 
+        last_login = datetime.now()
+
+        cur.execute("UPDATE user_account SET last_login = %s WHERE user_name = %s;", (last_login,form_data.username))
+
+        conn.commit()
+
         return {"access_token":access_token, "token_type": "bearer"}
     
     except Exception as e:
@@ -185,3 +191,45 @@ def get_users(current_user: list = Depends(get_current_user)):
     finally:
         cur.close()
         conn.close()
+
+@app.post("/users", tags = ["User & Role Management (Admin)"])
+def create_user(new_user: schemas.UserCreate, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(role_id,))
+        current_user_role = cur.fetchone()[0]
+        if current_user_role == "Admin":
+            cur.execute("SELECT COUNT(user_id) FROM user_account;")
+            user_count = cur.fetchone()[0] or 0
+
+            new_user_id = user_count+1
+
+            cur.execute("SELECT role_id FROM role where role_name = %s",(new_user.role,))
+            role_row = cur.fetchone()
+            if not role_row:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+            role_id = role_row[0]
+
+            cur.execute("SELECT COUNT(user_id) FROM user_account WHERE user_name = %s or email = %s",(new_user.username,new_user.email,))
+            exist_user_count = cur.fetchone()
+            if exist_user_count[0]:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail = "Username or Email already exists")
+            
+            password_hash = auth.get_password_hash(new_user.password)
+
+            cur.execute("INSERT INTO user_account (user_id, employee_id, role_id, user_name, email, password_hash, last_login) VALUES (%s, %s, %s, %s, %s, %s, %s);",(new_user_id, new_user.employee_id, role_id, new_user.username, new_user.email, password_hash, datetime.now(),))
+
+            conn.commit()
+
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+        
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
