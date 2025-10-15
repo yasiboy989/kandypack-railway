@@ -5,7 +5,8 @@ from jose import JWTError, jwt
 from datetime import timedelta
 from Database import database
 from Authenticaton import auth
-from datetime import datetime
+from datetime import datetime,date
+from typing import List
 
 from Schemas import schemas
 
@@ -26,7 +27,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT * FROM user_account where user_name = %s;", (username,))
+        cur.execute("SELECT user_id, employee_id, role_id, user_name, email FROM user_account where user_name = %s;", (username,))
         
         user = cur.fetchone()
 
@@ -91,7 +92,7 @@ def get_profile(current_user: list = Depends(get_current_user)):
     user_id = current_user[0]
     role_id = current_user[2]
     username = current_user[3]
-    email = current_user[5]
+    email = current_user[4]
 
     conn = database.get_db_connection()
     cur = conn.cursor()
@@ -120,14 +121,14 @@ def update_profile(profile: schemas.UserPorfileUpdate, current_user: list = Depe
     user_id = current_user[0]
     role_id = current_user[2]
     username = current_user[3]
-    email = current_user[5]
+    email = current_user[4]
     employee_id = current_user[1]
 
     conn = database.get_db_connection()
     cur = conn.cursor()
 
     try:
-        cur.execute("UPDATE user_account SET email= %s WHERE user_id=%s RETURNING user_id;",(email, user_id,))
+        cur.execute("UPDATE user_account SET email= %s WHERE user_id=%s RETURNING user_id;",(profile.email, user_id,))
         updated = cur.fetchone()
         conn.commit()
 
@@ -146,7 +147,7 @@ def update_profile(profile: schemas.UserPorfileUpdate, current_user: list = Depe
         return {
             "user_id": user_id,
             "user_name": username,
-            "email": email,
+            "email": profile.email,
             "role": role[0]
         }
     
@@ -486,7 +487,7 @@ def delete_role(delete_role_id: int, current_user: list = Depends(get_current_us
         conn.close()
 
 @app.get("/employees", tags = ["Employee & Scheduling"])
-def get_employees():
+def get_employees(current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
@@ -520,7 +521,7 @@ def get_employees():
         conn.close()
 
 @app.post("/employees", tags=["Employee & Scheduling"], response_model=schemas.Employee)
-def create_employees(employee: schemas.CreateEmployee):
+def create_employees(employee: schemas.CreateEmployee,current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
@@ -555,7 +556,7 @@ def create_employees(employee: schemas.CreateEmployee):
         conn.close()
 
 @app.get("/employee-shedules", tags=["Employee & Scheduling"])
-def get_employee_shedules():
+def get_employee_shedules(current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
@@ -584,7 +585,7 @@ def get_employee_shedules():
         conn.close()
 
 @app.post("/employee-shedules", response_model=schemas.EmployeeShedules, tags=["Employee & Scheduling"])
-def create_employee_shedule(shedule: schemas.CreateEmployeeSchedule):
+def create_employee_shedule(shedule: schemas.CreateEmployeeSchedule,current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
@@ -615,7 +616,7 @@ def create_employee_shedule(shedule: schemas.CreateEmployeeSchedule):
         conn.close()
 
 @app.get("/customers", tags=["Customers"])
-def get_customers():
+def get_customers(current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
@@ -643,7 +644,7 @@ def get_customers():
         conn.close()
 
 @app.post("/customers", tags=["Customers"], response_model= schemas.CutomerResponse)
-def create_customer(customer: schemas.CreateCustomer):
+def create_customer(customer: schemas.CreateCustomer, current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
@@ -673,7 +674,7 @@ def create_customer(customer: schemas.CreateCustomer):
         conn.close()
 
 @app.get("/customers/{customer_id}/orders", tags=["Customers"])
-def get_cutomer_orders(cutomer_id:int):
+def get_cutomer_orders(cutomer_id:int,current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
 
@@ -694,6 +695,45 @@ def get_cutomer_orders(cutomer_id:int):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/customers/{customer_id}/orders", tags = ["Customers"], response_model=schemas.Order)
+def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute('SELECT COUNT(order_id) FROM "Order"')
+        order_id = cur.fetchone()[0]+1
+        order_date = date.today()
+        
+        schedule_date = order.scheduleDate
+        items = order.items
+
+        cur.execute('INSERT INTO "Order"(order_id, customer_id, order_date, schedule_date, user_id) VALUES(%s, %s, %s, %s, %s)',(order_id, customer_id, order_date, schedule_date, current_user[0]))
+        conn.commit()
+
+        for item in items:
+            cur.execute("""
+                INSERT INTO order_item (order_id, product_id, quantity)
+                VALUES(%s, %s, %s);
+            """,(order_id, item.productID, item.quantity))
+            conn.commit()
+
+        cur.execute('SELECT order_id, status FROM "Order" WHERE order_id = %s',(order_id,))
+        order_fetch = cur.fetchone()
+
+        return{
+            "order_id": order_fetch[0],
+            "status": order_fetch[1]
+        }
+    
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
     finally:
         cur.close()

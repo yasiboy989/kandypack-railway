@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
+from typing import List
 
 class UserCreate(BaseModel):
     username: str
@@ -74,3 +75,11 @@ class CutomerResponse(BaseModel):
 class Order(BaseModel):
     order_id: int
     status: str
+
+class Item(BaseModel):
+    productID: int
+    quantity: int
+
+class CreateOrder(BaseModel):
+    scheduleDate: date
+    items: List[Item]
