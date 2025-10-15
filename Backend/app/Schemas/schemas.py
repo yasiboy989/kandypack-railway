@@ -25,3 +25,9 @@ class Role(BaseModel):
 class createRole(BaseModel):
     role_name: str
     accessRights: str
+
+class Employee(BaseModel):
+    employee_id: int
+    firstName: str
+    lastName: str
+    type: str

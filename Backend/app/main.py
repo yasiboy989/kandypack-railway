@@ -473,3 +473,36 @@ def delete_role(delete_role_id: int, current_user: list = Depends(get_current_us
     finally:
         cur.close()
         conn.close()
+
+@app.get("/employees", tags = [" Employee & Scheduling"],)
+def get_employees():
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT employee_id, employee_type_id, first_name, last_name FROM employee;")
+        rows = cur.fetchall()
+
+        employees = []
+        for row in rows:
+            cur.execute("SELECT type_name FROM employee_type WHERE employee_type_id = %s",(row[1],))
+            employee_type = cur.fetchone()[0]
+
+            employee: schemas.Employee = {
+                "employee_id": row[0],
+                "firstName": row[2],
+                "lastName": row[3],
+                "type": employee_type
+            }
+
+            employees.append(employee)
+
+        return employees
+            
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
