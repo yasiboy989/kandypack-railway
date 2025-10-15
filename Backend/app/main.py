@@ -345,3 +345,36 @@ def delete_user(user_id:int, current_user: list = Depends(get_current_user)):
     finally:
         cur.close()
         conn.close()
+
+@app.get("/roles", tags = ["User & Role Management (Admin)"])
+def get_roles(current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    role_id = current_user[2]
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id=%s;",(role_id,))
+        role = cur.fetchone()[0]
+        if role == "Admin":
+            cur.execute("SELECT * FROM role;")
+            rows = cur.fetchall()
+            
+            roles = []
+
+            for row in rows:
+                role : schemas.Role = {
+                    "role_id": row[0],
+                    "role_name": row[1],
+                    "accessRights": row[2]
+                }
+                roles.append(role)
+            
+            return roles
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()    

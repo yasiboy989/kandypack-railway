@@ -16,3 +16,8 @@ class UserResponse(BaseModel):
 class UserPorfileUpdate(BaseModel):
     email: EmailStr
     phone: str
+
+class Role(BaseModel):
+    role_id: int
+    role_name: str
+    accessRights: str
