@@ -378,3 +378,33 @@ def get_roles(current_user: list = Depends(get_current_user)):
     finally:
         cur.close()
         conn.close()    
+
+@app.post("/roles", tags = ["User & Role Management (Admin)"], response_model=schemas.Role)
+def create_role(new_role: schemas.createRole, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    role_id = current_user[2]
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id=%s;",(role_id,))
+        role = cur.fetchone()[0]
+        if role == "Admin":
+            cur.execute("SELECT count(role_id) FROM role;")
+            new_role_id = cur.fetchone()[0]+1
+
+            cur.execute("INSERT INTO role (role_id, role_name, access_rights) VALUES(%s, %s, %s);",(new_role_id, new_role.role_name, new_role.accessRights))
+            conn.commit()
+
+            return {
+                "role_id": new_role_id,
+                "role_name": new_role.role_name,
+                "accessRights": new_role.accessRights
+            }
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()

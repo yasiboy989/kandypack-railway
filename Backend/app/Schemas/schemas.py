@@ -21,3 +21,7 @@ class Role(BaseModel):
     role_id: int
     role_name: str
     accessRights: str
+
+class createRole(BaseModel):
+    role_name: str
+    accessRights: str
