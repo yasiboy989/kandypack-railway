@@ -721,6 +721,11 @@ def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_
                 INSERT INTO order_item (order_id, product_id, quantity)
                 VALUES(%s, %s, %s);
             """,(order_id, item.productID, item.quantity))
+
+            cur.execute("SELECT available_units FROM product WHERE product_id = %s",(item.productID,))
+            available_units = cur.fetchone()[0] - item.quantity
+
+            cur.execute("UPDATE product SET available_units = %s WHERE product_id = %s", (available_units, item.productID,))
             conn.commit()
 
         cur.execute('SELECT order_id, status FROM "Order" WHERE order_id = %s',(order_id,))
@@ -820,6 +825,77 @@ def get_inventory(current_user: list = Depends(get_current_user)):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/orders", tags = ["Orders"])
+def get_orders(current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute('SELECT order_id, status FROM "Order";')
+        rows = cur.fetchall()
+
+        orders = []
+        for row in rows:
+            order: schemas.Order = {
+                "order_id": row[0],
+                "status": row[1]
+            }
+
+            orders.append(order)
+        
+        return orders
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        cur.close()
+
+@app.post("/orders", tags = ["Orders"], response_model= schemas.Order)
+def create_order(order: schemas.CreateOrderWithId, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute('SELECT COUNT(order_id) FROM "Order"')
+        order_id = cur.fetchone()[0]+1
+        order_date = date.today()
+        
+        schedule_date = order.scheduleDate
+        items = order.items
+
+        cur.execute('INSERT INTO "Order"(order_id, customer_id, order_date, schedule_date, user_id) VALUES(%s, %s, %s, %s, %s)',(order_id, order.customer_id, order_date, schedule_date, current_user[0]))
+        conn.commit()
+
+        for item in items:
+            cur.execute("""
+                INSERT INTO order_item (order_id, product_id, quantity)
+                VALUES(%s, %s, %s);
+            """,(order_id, item.productID, item.quantity))
+
+            cur.execute("SELECT available_units FROM product WHERE product_id = %s",(item.productID,))
+            available_units = cur.fetchone()[0] - item.quantity
+
+            cur.execute("UPDATE product SET available_units = %s WHERE product_id = %s", (available_units, item.productID,))
+            conn.commit()
+
+        cur.execute('SELECT order_id, status FROM "Order" WHERE order_id = %s',(order_id,))
+        order_fetch = cur.fetchone()
+
+        return{
+            "order_id": order_fetch[0],
+            "status": order_fetch[1]
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
         cur.close()

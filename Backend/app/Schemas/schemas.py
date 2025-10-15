@@ -100,3 +100,8 @@ class CreateProduct(BaseModel):
 class Inventory(BaseModel):
     product_id: int
     availableUnits: int
+
+class CreateOrderWithId(BaseModel):
+    customer_id: int
+    scheduleDate: date
+    items: List[Item]
