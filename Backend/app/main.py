@@ -192,11 +192,11 @@ def get_users(current_user: list = Depends(get_current_user)):
         cur.close()
         conn.close()
 
-@app.post("/users", tags = ["User & Role Management (Admin)"])
+@app.post("/users", tags = ["User & Role Management (Admin)"], response_model=schemas.UserResponse)
 def create_user(new_user: schemas.UserCreate, current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
-
+    role_id = current_user[2]
     try:
         cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(role_id,))
         current_user_role = cur.fetchone()[0]
@@ -222,6 +222,45 @@ def create_user(new_user: schemas.UserCreate, current_user: list = Depends(get_c
             cur.execute("INSERT INTO user_account (user_id, employee_id, role_id, user_name, email, password_hash, last_login) VALUES (%s, %s, %s, %s, %s, %s, %s);",(new_user_id, new_user.employee_id, role_id, new_user.username, new_user.email, password_hash, datetime.now(),))
 
             conn.commit()
+
+            return{
+                "user_id": new_user_id,
+                "user_name": new_user.username,
+                "email": new_user.email,
+                "role" : new_user.role
+            }
+
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+        
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/users/{user_id}", tags = ["User & Role Management (Admin)"],response_model=schemas.UserResponse)
+def get_user(user_id: int,current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    role_id = current_user[2]
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(role_id,))
+        current_user_role = cur.fetchone()[0]
+        if current_user_role == "Admin":
+            cur.execute("SELECT role_id,user_name, email FROM user_account WHERE user_id = %s;", (user_id,))
+            user = cur.fetchone()
+
+            cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(user[0],))
+            role = cur.fetchone()[0]
+
+            return{
+                "user_id": user_id,
+                "user_name": user[1],
+                "email": user[2],
+                "role": role
+            }
 
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
