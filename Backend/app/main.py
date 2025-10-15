@@ -855,7 +855,7 @@ def get_orders(current_user: list = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
-        cur.close()
+        conn.close()
         cur.close()
 
 @app.post("/orders", tags = ["Orders"], response_model= schemas.Order)
@@ -897,6 +897,43 @@ def create_order(order: schemas.CreateOrderWithId, current_user: list = Depends(
         conn.rollback()
         raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/orders/{order_id}/allocate-train", tags=["Orders"], response_model=schemas.AllocateTrainResponse)
+def allocate_train(order_id: int, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("CALL allocate_order_to_train(%s);", (order_id,))
+        conn.commit()
+
+        cur.execute("""
+            SELECT ts.train_trip_id
+            FROM train_schedule ts
+            WHERE ts.order_id = %s
+            LIMIT 1;
+        """, (order_id,))
+        result = cur.fetchone()
+
+        if result:
+            train_trip_id = result[0]
+            return {
+                "success": True,
+                "message": f"Order allocated to train {train_trip_id}"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "No available train could accommodate this order"
+            }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
     finally:
         cur.close()
         conn.close()

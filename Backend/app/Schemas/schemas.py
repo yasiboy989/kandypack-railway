@@ -105,3 +105,7 @@ class CreateOrderWithId(BaseModel):
     customer_id: int
     scheduleDate: date
     items: List[Item]
+
+class AllocateTrainResponse(BaseModel):
+    success: bool
+    message: str
