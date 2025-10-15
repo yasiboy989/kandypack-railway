@@ -88,3 +88,11 @@ class Product(BaseModel):
     product_id: int
     productName: str
     unitPrice: float
+
+class CreateProduct(BaseModel):
+    productName: str
+    category: str
+    unitPrice: float
+    unitWeight: float
+    train_space_per_unit: float
+    available_units: float

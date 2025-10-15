@@ -768,3 +768,31 @@ def get_products(current_user: list = Depends(get_current_user)):
     finally:
         conn.close()
         cur.close()
+
+@app.post("/products", tags=["Products & Inventory"], response_model=schemas.Product)
+def create_product(product: schemas.CreateProduct, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT count(product_id) FROM product;")
+        product_id  = cur.fetchone()[0]+1
+        cur.execute("""
+            INSERT INTO product (product_id, product_name, category, unit_price, unit_weight, train_space_per_unit, available_units)
+            VALUES(%s, %s, %s, %s, %s, %s, %s);
+        """,(product_id, product.productName, product.category, product.unitPrice, product.unitWeight, product.train_space_per_unit, product.available_units,))
+        conn.commit()
+
+        return{
+            "product_id": product_id,
+            "productName": product.productName,
+            "unitPrice": product.unitPrice
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
