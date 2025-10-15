@@ -408,3 +408,39 @@ def create_role(new_role: schemas.createRole, current_user: list = Depends(get_c
     finally:
         cur.close()
         conn.close()
+
+@app.put("/roles/{new_role_id}", response_model=schemas.Role)
+def update_role(new_role_id: int,accessRights: str, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    role_id = current_user[2]
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id=%s;",(role_id,))
+        role = cur.fetchone()[0]
+        if role == "Admin":
+            cur.execute("UPDATE role SET access_rights = %s WHERE role_id = %s",(accessRights, new_role_id,))
+            role_count = cur.rowcount
+
+            if role_count == 0:
+                conn.rollback()
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"Role id with {new_role_id} not found")
+
+            conn.commit()
+
+            cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(role_id,))
+            role_name = cur.fetchone()[0]
+
+            return {
+                "role_id":new_role_id,
+                "role_name": role_name,
+                "accessRights": accessRights
+            }
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
