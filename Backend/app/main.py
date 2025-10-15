@@ -272,3 +272,36 @@ def get_user(user_id: int,current_user: list = Depends(get_current_user)):
         cur.close()
         conn.close()
 
+@app.put("/users/{user_id}", tags=["User & Role Management (Admin)"], response_model=schemas.UserResponse)
+def update_user(user_id: int, email: str, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    role_id = current_user[2]
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id=%s;",(role_id,))
+        role = cur.fetchone()[0]
+        if role == "Admin":
+            cur.execute("UPDATE user_account SET email = %s WHERE user_id = %s", (email, user_id,))
+            conn.commit()
+
+            cur.execute("SELECT user_name,email,role_id FROM user_account WHERE user_id = %s;",(user_id,))
+            user = cur.fetchone()
+
+            cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(user[2],))
+            role = cur.fetchone()[0]
+
+            return {
+                "user_id": user_id,
+                "user_name":user[0],
+                "email": user[1],
+                "role": role
+            }
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
