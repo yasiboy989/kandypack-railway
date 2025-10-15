@@ -738,3 +738,33 @@ def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_
     finally:
         cur.close()
         conn.close()
+
+@app.get("/products", tags = ["Products & Inventory"])
+def get_products(current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT product_id, product_name, unit_price FROM product;")
+        rows = cur.fetchall()
+
+        products=[]
+
+        for row in rows:
+            product: schemas.Product = {
+                "product_id": row[0],
+                "productName": row[1],
+                "unitPrice": row[2]
+            }
+
+            products.append(product)
+        
+        return products
+
+    except  Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    finally:
+        conn.close()
+        cur.close()

@@ -83,3 +83,8 @@ class Item(BaseModel):
 class CreateOrder(BaseModel):
     scheduleDate: date
     items: List[Item]
+
+class Product(BaseModel):
+    product_id: int
+    productName: str
+    unitPrice: float
