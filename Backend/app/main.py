@@ -35,6 +35,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         return user
     
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
@@ -73,6 +74,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         return {"access_token":access_token, "token_type": "bearer"}
     
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
     finally:
@@ -106,6 +108,7 @@ def get_profile(current_user: list = Depends(get_current_user)):
         }
     
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
@@ -183,6 +186,7 @@ def get_users(current_user: list = Depends(get_current_user)):
 
             return users
         else:
+            conn.rollback()
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     
     except Exception as e:
@@ -231,6 +235,7 @@ def create_user(new_user: schemas.UserCreate, current_user: list = Depends(get_c
             }
 
         else:
+            conn.rollback()
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
         
     except Exception as e:
@@ -269,6 +274,7 @@ def get_user(user_id: int,current_user: list = Depends(get_current_user)):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
         
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
     finally:
@@ -309,6 +315,7 @@ def update_user(user_id: int, email: str, current_user: list = Depends(get_curre
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
     finally:
@@ -343,6 +350,7 @@ def delete_user(user_id:int, current_user: list = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
+        conn.rollback()
         cur.close()
         conn.close()
 
@@ -373,6 +381,7 @@ def get_roles(current_user: list = Depends(get_current_user)):
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
@@ -403,6 +412,7 @@ def create_role(new_role: schemas.createRole, current_user: list = Depends(get_c
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
@@ -468,13 +478,14 @@ def delete_role(delete_role_id: int, current_user: list = Depends(get_current_us
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
         cur.close()
         conn.close()
 
-@app.get("/employees", tags = [" Employee & Scheduling"],)
+@app.get("/employees", tags = ["Employee & Scheduling"])
 def get_employees():
     conn = database.get_db_connection()
     cur = conn.cursor()
@@ -501,7 +512,43 @@ def get_employees():
             
 
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/employees", tags=["Employee & Scheduling"], response_model=schemas.Employee)
+def create_employees(employee: schemas.CreateEmployee):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT count(employee_id) FROM employee;")
+        employee_id = cur.fetchone()[0]+1
+
+        cur.execute("""
+                    INSERT INTO employee(employee_id, employee_type_id, first_name, last_name, nic, phone, address, date_hired) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""",(employee_id, employee.employeeTypeId, employee.firstName, employee.lastName, employee.nic, employee.phone, employee.address, employee.dateHired,))
+        conn.commit()
+        
+        cur.execute("SELECT type_name FROM employee_type WHERE employee_type_id = %s;", (employee.employeeTypeId,))
+        type_name = cur.fetchone()[0]
+
+        if not type_name:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"Employee type id {employee.employeeTypeId} with not found.")
+
+        return{
+            "employee_id": employee_id,
+            "firstName": employee.firstName,
+            "lastName": employee.lastName,
+            "type": type_name
+        }
+    
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
     finally:
         cur.close()

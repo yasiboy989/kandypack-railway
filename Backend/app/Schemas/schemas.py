@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from datetime import date
 
 class UserCreate(BaseModel):
     username: str
@@ -31,3 +32,12 @@ class Employee(BaseModel):
     firstName: str
     lastName: str
     type: str
+
+class CreateEmployee(BaseModel):
+    firstName: str
+    lastName: str
+    employeeTypeId: int
+    nic: str
+    phone: str
+    address: str
+    dateHired: date
