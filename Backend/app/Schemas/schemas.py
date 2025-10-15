@@ -57,3 +57,16 @@ class Cutomer(BaseModel):
     customer_id: int
     name: str
     city: str
+
+class CreateCustomer(BaseModel):
+    name: str
+    type: str
+    address: str
+    city: str
+    contactNumber: str
+
+class CutomerResponse(BaseModel):
+    customer_id: int
+    name: str
+    city: str
+    contactNumber: str

@@ -614,7 +614,7 @@ def create_employee_shedule(shedule: schemas.CreateEmployeeSchedule):
         cur.close()
         conn.close()
 
-@app.post("/customers", tags=["Customers"])
+@app.get("/customers", tags=["Customers"])
 def get_customers():
     conn = database.get_db_connection()
     cur = conn.cursor()
@@ -641,3 +641,34 @@ def get_customers():
     finally:
         cur.close()
         conn.close()
+
+@app.post("/customers", tags=["Customers"], response_model= schemas.CutomerResponse)
+def create_customer(customer: schemas.CreateCustomer):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT count(customer_id) FROM customer;")
+        custome_id = cur.fetchone()[0]+1
+
+        cur.execute("""
+            INSERT INTO customer (customer_id, name, type, address, city, contact_number)
+            VALUES(%s, %s, %s, %s, %s, %s)
+        """,(custome_id,customer.name,customer.type, customer.address, customer.city, customer. contactNumber))
+        conn.commit()
+
+        return{
+            "customer_id": custome_id,
+            "name": customer.name,
+            "city": customer.city,
+            "contactNumber": customer.contactNumber
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+
+    finally:
+        cur.close()
+        conn.close()
+
