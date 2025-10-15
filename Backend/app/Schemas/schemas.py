@@ -70,3 +70,7 @@ class CutomerResponse(BaseModel):
     name: str
     city: str
     contactNumber: str
+
+class Order(BaseModel):
+    order_id: int
+    status: str

@@ -672,3 +672,29 @@ def create_customer(customer: schemas.CreateCustomer):
         cur.close()
         conn.close()
 
+@app.get("/customers/{customer_id}/orders", tags=["Customers"])
+def get_cutomer_orders(cutomer_id:int):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute('SELECT order_id, status FROM "Order" WHERE customer_id = %s',(cutomer_id,))
+        rows = cur.fetchall()
+
+        orders = []
+        for row in rows:
+            order: schemas.Order = {
+                "order_id": row[0],
+                "status": row[1]
+            }
+            orders.append(order)
+        
+        return orders
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
