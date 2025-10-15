@@ -1,11 +1,11 @@
 from fastapi import FastAPI,Depends,HTTPException,status
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from jose import JWTError, jwt 
 from datetime import timedelta
 from Database import database
 from Authenticaton import auth
 from datetime import datetime
-from passlib.context import CryptContext
 
 from Schemas import schemas
 
@@ -17,7 +17,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, auth.SECRET_KEY, algorithms=auth.ALGORITHM)
         username: str = payload.get("sub")
-        if username is None:
+        if not username:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -27,10 +27,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
     try:
         cur.execute("SELECT * FROM user_account where user_name = %s;", (username,))
-
+        
         user = cur.fetchone()
 
-        if user is None:
+        if not user :
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return user
     
@@ -51,12 +51,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         user = cur.fetchone()
 
         if not user:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid Username")
         
         user_id, employee_id, role_id, username, password_hash = user
 
         if not auth.verify_password(form_data.password,password_hash):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
         
         access_token_expires = timedelta(minutes=30)
         access_token = auth.create_access_token(
@@ -250,6 +250,9 @@ def get_user(user_id: int,current_user: list = Depends(get_current_user)):
         current_user_role = cur.fetchone()[0]
         if current_user_role == "Admin":
             cur.execute("SELECT role_id,user_name, email FROM user_account WHERE user_id = %s;", (user_id,))
+            user_count = cur.rowcount
+            if user_count == 0:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {user_id} not found")
             user = cur.fetchone()
 
             cur.execute("SELECT role_name FROM role WHERE role_id = %s;",(user[0],))
@@ -283,6 +286,12 @@ def update_user(user_id: int, email: str, current_user: list = Depends(get_curre
         role = cur.fetchone()[0]
         if role == "Admin":
             cur.execute("UPDATE user_account SET email = %s WHERE user_id = %s", (email, user_id,))
+            updated_count = cur.rowcount
+
+            if (updated_count==0):
+                conn.rollback()
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {user_id} not found")
+            
             conn.commit()
 
             cur.execute("SELECT user_name,email,role_id FROM user_account WHERE user_id = %s;",(user_id,))
@@ -301,6 +310,37 @@ def update_user(user_id: int, email: str, current_user: list = Depends(get_curre
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
+@app.delete("/users/{user_id}", tags=["User & Role Management (Admin)"])
+def delete_user(user_id:int, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    role_id = current_user[2]
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id=%s;",(role_id,))
+        role = cur.fetchone()[0]
+        if role == "Admin":
+            cur.execute("DELETE FROM user_account WHERE user_id=%s;",(user_id,))
+            deleted_count = cur.rowcount  # Number of deleted rows
+            if deleted_count == 0:
+                conn.rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"User with ID {user_id} not found"
+                )
+            
+            conn.commit()
+
+            return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
     finally:
         cur.close()
