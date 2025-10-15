@@ -1,6 +1,6 @@
 from fastapi import FastAPI,Depends,HTTPException,status
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
+from fastapi import Response
 from jose import JWTError, jwt 
 from datetime import timedelta
 from Database import database
@@ -336,7 +336,7 @@ def delete_user(user_id:int, current_user: list = Depends(get_current_user)):
             
             conn.commit()
 
-            return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     except Exception as e:
@@ -409,7 +409,7 @@ def create_role(new_role: schemas.createRole, current_user: list = Depends(get_c
         cur.close()
         conn.close()
 
-@app.put("/roles/{new_role_id}", response_model=schemas.Role)
+@app.put("/roles/{new_role_id}", tags = ["User & Role Management (Admin)"], response_model=schemas.Role)
 def update_role(new_role_id: int,accessRights: str, current_user: list = Depends(get_current_user)):
     conn = database.get_db_connection()
     cur = conn.cursor()
@@ -436,6 +436,35 @@ def update_role(new_role_id: int,accessRights: str, current_user: list = Depends
                 "role_name": role_name,
                 "accessRights": accessRights
             }
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
+@app.delete("/roles/{delete_role_id}", tags=["User & Role Management (Admin)"])
+def delete_role(delete_role_id: int, current_user: list = Depends(get_current_user)):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    role_id = current_user[2]
+
+    try:
+        cur.execute("SELECT role_name FROM role WHERE role_id=%s;",(role_id,))
+        role = cur.fetchone()[0]
+        if role == "Admin":
+            cur.execute("DELETE FROM role WHERE role_id = %s",(delete_role_id,))
+            delete_count = cur.rowcount
+
+            if delete_count == 0:
+                conn.rollback()
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"Role with role_id {delete_role_id} not found")
+            
+            conn.commit()
+
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail = "You haven't access for the data")
     except Exception as e:
