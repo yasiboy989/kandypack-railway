@@ -14,3 +14,11 @@ class Config:
 
     POOL_SIZE = 10
     MAX_OVERFLOW = 20
+
+DB_CONFIG = {
+    "host": Config.DB_HOST,
+    "database": Config.DB_NAME,
+    "user": Config.DB_USER,
+    "password": Config.DB_PASSWORD,
+    "port":Config.DB_PORT
+}

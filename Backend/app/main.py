@@ -553,3 +553,63 @@ def create_employees(employee: schemas.CreateEmployee):
     finally:
         cur.close()
         conn.close()
+
+@app.get("/employee-shedules", tags=["Employee & Scheduling"])
+def get_employee_shedules():
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT schedule_id, employee_id, delivery_id, hours_worked FROM employee_schedule;")
+        rows = cur.fetchall()
+
+        shedules = []
+        for row in rows:
+            shedule: schemas.EmployeeShedules = {
+                "sheduleId": row[0],
+                "employeeID": row[1],
+                "deliveryID": row[2],
+                "hoursWorked": row[3]
+            }
+            shedules.append(shedule)
+        
+        return shedules
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/employee-shedules", response_model=schemas.EmployeeShedules, tags=["Employee & Scheduling"])
+def create_employee_shedule(shedule: schemas.CreateEmployeeSchedule):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT COUNT(schedule_id) FROM employee_schedule")
+        schedule_id = cur.fetchone()[0]+1
+
+        cur.execute("""
+            INSERT INTO employee_schedule(schedule_id, employee_id, delivery_id, hours_worked, assigned_at)
+            VALUES(%s, %s, %s, %s, %s)
+        """, (schedule_id, shedule.employeeId, shedule.deliveryId, shedule.hoursWorked, datetime.now()))
+
+        conn.commit()
+
+        return{
+            "sheduleId": schedule_id,
+            "employeeId": shedule.employeeId,
+            "deliveryId": shedule.deliveryId,
+            "hoursWorked": shedule.hoursWorked
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+
+    finally:
+        cur.close()
+        conn.close()

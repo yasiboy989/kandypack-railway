@@ -41,3 +41,14 @@ class CreateEmployee(BaseModel):
     phone: str
     address: str
     dateHired: date
+
+class EmployeeShedules(BaseModel):
+    sheduleId: int
+    employeeId: int
+    deliveryId: int
+    hoursWorked: float
+
+class CreateEmployeeSchedule(BaseModel):
+    employeeId: int
+    deliveryId: int
+    hoursWorked: float
