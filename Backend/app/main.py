@@ -613,3 +613,31 @@ def create_employee_shedule(shedule: schemas.CreateEmployeeSchedule):
     finally:
         cur.close()
         conn.close()
+
+@app.post("/customers", tags=["Customers"])
+def get_customers():
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT customer_id, name, city FROM customer;")
+        rows = cur.fetchall()
+
+        cutomers = []
+        for row in rows:
+            cutomer: schemas.Cutomer = {
+                "customer_id": row[0],
+                "name": row[1],
+                "city": row[2]
+            }
+            cutomers.append(cutomer)
+        
+        return cutomers
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    finally:
+        cur.close()
+        conn.close()

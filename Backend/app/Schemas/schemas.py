@@ -52,3 +52,8 @@ class CreateEmployeeSchedule(BaseModel):
     employeeId: int
     deliveryId: int
     hoursWorked: float
+
+class Cutomer(BaseModel):
+    customer_id: int
+    name: str
+    city: str
