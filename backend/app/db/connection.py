@@ -1,12 +1,28 @@
+import os
+from dotenv import load_dotenv
 import psycopg2
+import urllib.parse as urlparse
+
+# Load environment variables from .env file
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 try:
+    # Parse the database URL
+    result = urlparse.urlparse(DATABASE_URL)
+    username = result.username
+    password = result.password
+    database = result.path[1:]
+    hostname = result.hostname
+    port = result.port
+
     conn = psycopg2.connect(
-        host="localhost",
-        database="railway",
-        user="post_chanul",
-        password="chanul1234",
-        port="5432"
+        host=hostname,
+        database=database,
+        user=username,
+        password=password,
+        port=port
     )
     print("✅ Database connected successfully!")
     conn.close()
