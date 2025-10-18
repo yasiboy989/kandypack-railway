@@ -1,0 +1,56 @@
+.assistant-portal {
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.assignment-card {
+  background-color: var(--secondary-color-1);
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color-4);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.card-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.assignment-details {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--secondary-color-4);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: var(--neutral-400);
+}
+
+.detail-value {
+  font-weight: 500;
+}
+
+.card-actions {
+  text-align: right;
+}

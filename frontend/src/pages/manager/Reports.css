@@ -1,0 +1,47 @@
+.reports-page {
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.reports-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.report-card {
+  background-color: var(--secondary-color-1);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-info {
+  flex-grow: 1;
+}
+
+.report-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.report-description {
+  color: var(--neutral-400);
+}
+
+.report-actions .btn-primary {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}

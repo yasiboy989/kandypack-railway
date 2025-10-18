@@ -1,0 +1,68 @@
+.my-assignments {
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.assignments-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.assignment-card {
+  background-color: var(--secondary-color-1);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color-4);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card-body .order-id {
+  color: var(--neutral-400);
+  margin-bottom: 1.5rem;
+}
+
+.card-actions {
+  text-align: right;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.pending {
+  background-color: var(--yellow-50);
+  color: var(--yellow-300);
+}
+
+.status-badge.in-transit {
+  background-color: rgba(14, 67, 251, 0.2);
+  color: var(--blue);
+}
+
+.status-badge.delivered {
+  background-color: var(--green-50);
+  color: var(--green-300);
+}

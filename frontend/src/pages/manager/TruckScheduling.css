@@ -1,0 +1,161 @@
+.truck-scheduling {
+  padding: 2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.search-input,
+.filter-select {
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  border: 1px solid var(--secondary-color-4);
+  background: var(--secondary-color-1);
+  color: var(--neutral-100);
+}
+
+.routes-table-container {
+  background-color: var(--secondary-color-1);
+  border: 1px solid var(--secondary-color-4);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.routes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.routes-table th,
+.routes-table td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--secondary-color-4);
+}
+
+.routes-table th {
+  font-weight: 600;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.pending {
+  background-color: var(--yellow-50);
+  color: var(--yellow-300);
+}
+
+.status-badge.in-transit {
+  background-color: rgba(14, 67, 251, 0.2);
+  color: var(--blue);
+}
+
+.status-badge.completed {
+  background-color: var(--green-50);
+  color: var(--green-300);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--neutral-400);
+}
+
+.btn-icon.btn-danger {
+  color: var(--red-300);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: var(--secondary-color-1);
+  border: 1px solid var(--secondary-color-4);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.modal-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  border: 1px solid var(--secondary-color-4);
+  background: var(--secondary-color-1);
+  color: var(--neutral-100);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}

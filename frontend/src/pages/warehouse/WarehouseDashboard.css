@@ -1,0 +1,96 @@
+.warehouse-dashboard {
+  padding: 2rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background-color: var(--secondary-color-1);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color-4);
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+  margin-right: 1rem;
+}
+
+.stat-label {
+  font-weight: 500;
+  color: var(--neutral-400);
+}
+
+.stat-content {
+  display: flex;
+  align-items: baseline;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background-color: var(--secondary-color-1);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color-4);
+}
+
+.card-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 6px;
+  background-color: var(--secondary-color-4);
+}
+
+.activity-message {
+  font-weight: 500;
+}
+
+.activity-time {
+  font-size: 0.875rem;
+  color: var(--neutral-400);
+}

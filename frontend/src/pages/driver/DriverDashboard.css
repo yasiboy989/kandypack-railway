@@ -1,0 +1,89 @@
+.driver-dashboard {
+  padding: 2rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background-color: var(--secondary-color-1);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color-4);
+  text-align: center;
+}
+
+.stat-label {
+  font-weight: 500;
+  color: var(--neutral-400);
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.current-task-card {
+  background-color: var(--secondary-color-1);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color-4);
+}
+
+.card-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.task-details {
+  display: grid;
+  gap: 1rem;
+}
+
+.task-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-weight: 500;
+  color: var(--neutral-400);
+}
+
+.info-value {
+  font-weight: 500;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.in-transit {
+  background-color: rgba(14, 67, 251, 0.2);
+  color: var(--blue);
+}
+
+.task-actions {
+  margin-top: 1.5rem;
+  text-align: right;
+}
