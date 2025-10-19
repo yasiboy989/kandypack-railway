@@ -1,0 +1,41 @@
+.notifications-page {
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.notifications-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.notification-item {
+  background-color: var(--secondary-color-1);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color-1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-item.read {
+  background-color: var(--secondary-color-4);
+  border-left-color: transparent;
+}
+
+.notification-message {
+  font-weight: 500;
+}
+
+.notification-time {
+  font-size: 0.875rem;
+  color: var(--neutral-400);
+}

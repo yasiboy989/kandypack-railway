@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import './DriverDashboard.css'
 
 function DriverDashboard() {
@@ -12,6 +13,12 @@ function DriverDashboard() {
     customerName: 'Graham Hills',
     address: '123, Main Street, Colombo 07',
     status: 'in-transit'
+  }
+
+  const navigate = useNavigate()
+
+  const handleViewDetailsClick = () => {
+    navigate('/driver/deliveries')
   }
 
   return (
@@ -62,7 +69,7 @@ function DriverDashboard() {
           </div>
         </div>
         <div className="task-actions">
-          <button className="btn-primary">View Details</button>
+          <button className="btn-primary" onClick={handleViewDetailsClick}>View Details</button>
         </div>
       </div>
     </div>

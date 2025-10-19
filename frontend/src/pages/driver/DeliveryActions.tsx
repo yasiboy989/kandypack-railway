@@ -1,17 +1,14 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import './DeliveryActions.css'
 
-interface DeliveryActionsProps {
-  orderId: string
-  currentStatus: string
-  onStatusUpdate: (newStatus: string) => void
-}
-
-function DeliveryActions({ orderId, currentStatus, onStatusUpdate }: DeliveryActionsProps) {
-  const [status, setStatus] = useState(currentStatus)
+function DeliveryActions() {
+  const [searchParams] = useSearchParams()
+  const orderId = searchParams.get('orderId')
+  const [status, setStatus] = useState('in-transit')
 
   const handleUpdate = () => {
-    onStatusUpdate(status)
+    // onStatusUpdate(status)
   }
 
   return (

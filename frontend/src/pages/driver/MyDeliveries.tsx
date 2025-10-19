@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './MyDeliveries.css'
 
 interface Delivery {
@@ -15,6 +16,12 @@ function MyDeliveries() {
     { id: 'ORD002', customerName: 'Sophie Moore', address: '789, Kandy Road, Kiribathgoda', status: 'delivered' },
     { id: 'ORD001', customerName: 'John Carter', address: '321, High Level Road, Nugegoda', status: 'failed' },
   ])
+
+  const navigate = useNavigate()
+
+  const handleUpdateClick = (orderId: string) => {
+    navigate(`/driver/actions?orderId=${orderId}`)
+  }
 
   return (
     <div className="my-deliveries">
@@ -35,7 +42,12 @@ function MyDeliveries() {
               <p className="address">{delivery.address}</p>
             </div>
             <div className="card-actions">
-              <button className="btn-primary">Update Status</button>
+              <button 
+                className="btn-primary" 
+                onClick={() => handleUpdateClick(delivery.id)}
+              >
+                Update Status
+              </button>
             </div>
           </div>
         ))}

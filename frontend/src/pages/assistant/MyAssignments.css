@@ -3,12 +3,18 @@
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
-.page-header h1 {
-  font-size: 2rem;
-  font-weight: bold;
+.truck-assignment-info {
+  background-color: var(--secondary-color-1);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--secondary-color-4);
+  font-weight: 500;
 }
 
 .assignments-list {
@@ -37,7 +43,13 @@
 
 .card-body .order-id {
   color: var(--neutral-400);
+  margin-bottom: 0.5rem;
+}
+
+.card-body .address {
+  color: var(--neutral-300);
   margin-bottom: 1.5rem;
+  font-weight: 500;
 }
 
 .card-actions {

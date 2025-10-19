@@ -3,6 +3,8 @@ import PortalLayout from '../components/PortalLayout'
 import MyAssignments from './assistant/MyAssignments'
 import DeliveryConfirmation from './assistant/DeliveryConfirmation'
 import Notifications from './assistant/Notifications'
+import Profile from './assistant/Profile'
+import './assistant/AssistantPortal.css'
 
 function AssistantPortal() {
   return (
@@ -15,6 +17,7 @@ function AssistantPortal() {
         <Route path="/" element={<MyAssignments />} />
         <Route path="/confirmation" element={<DeliveryConfirmation />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<Navigate to="/assistant" replace />} />
       </Routes>
     </PortalLayout>
