@@ -1,0 +1,164 @@
+.train-scheduling {
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.calendar-view {
+  background: var(--secondary-color-1);
+  border: 0.6px solid var(--secondary-color-4);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.calendar-header h2 {
+  color: var(--neutral-100);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.btn-nav {
+  padding: 8px 16px;
+  background: var(--neutral-700);
+  border: 0.6px solid var(--secondary-color-4);
+  border-radius: 6px;
+  color: var(--neutral-100);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-nav:hover {
+  background: var(--neutral-600);
+  border-color: var(--primary-color-1);
+}
+
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.trip-card {
+  padding: 20px;
+  background: var(--neutral-700);
+  border: 0.6px solid var(--secondary-color-4);
+  border-radius: 8px;
+}
+
+.trip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 0.6px solid var(--secondary-color-4);
+}
+
+.trip-id {
+  color: var(--neutral-100);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.trip-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.detail-item .label {
+  color: var(--neutral-400);
+}
+
+.detail-item .value {
+  color: var(--neutral-100);
+  font-weight: 500;
+}
+
+.capacity-bar-large {
+  height: 32px;
+  background: var(--neutral-600);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.capacity-bar-large .capacity-fill {
+  height: 100%;
+  background: var(--gradient);
+  transition: width 0.3s;
+}
+
+.trip-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.unallocated-orders {
+  background: var(--secondary-color-1);
+  border: 0.6px solid var(--secondary-color-4);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.unallocated-orders h2 {
+  margin-bottom: 16px;
+}
+
+.orders-count {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.orders-count .count {
+  color: var(--primary-color-1);
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.orders-count .text {
+  color: var(--neutral-400);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .trips-grid {
+    grid-template-columns: 1fr;
+  }
+}
