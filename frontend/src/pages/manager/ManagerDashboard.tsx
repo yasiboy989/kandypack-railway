@@ -8,13 +8,20 @@ interface TrainTrip {
   id: number
   departureCity: string
   arrivalCity: string
-  departureDateTime: string
+  departureDateTime?: string | null
+  arrivalDateTime?: string | null
   totalCapacity: number
 }
 
 interface Delivery {
   id: number
   status: string
+  routeName?: string
+  routeStart?: string
+  routeEnd?: string
+  deliveryDateTime?: string | null
+  startTime?: string | null
+  endTime?: string | null
 }
 
 interface Order {
@@ -48,6 +55,7 @@ function ManagerDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [liveAlerts, setLiveAlerts] = useState<any[]>([])
   const [serverAlerts, setServerAlerts] = useState<{ capacity_full_trips: any[]; roster_conflicts: any[] } | null>(null)
+  const [dailyEvents, setDailyEvents] = useState<Array<{ time: string; label: string; meta?: string; type: 'train' | 'truck' }>>([])
 
   // Mock data for alerts, to be replaced by WebSocket implementation
   const highPriorityAlerts = [
@@ -103,10 +111,21 @@ function ManagerDashboard() {
     id: t.train_trip_id ?? t.id ?? t[0],
     departureCity: t.departure_city ?? t.departureCity ?? t[1] ?? 'Unknown',
     arrivalCity: t.arrival_city ?? t.arrivalCity ?? t[2] ?? 'Unknown',
-    departureDateTime: t.departure_date_time ?? t.departureDateTime ?? new Date().toISOString(),
+    departureDateTime: t.departure_date_time ?? t.departureDateTime ?? null,
+    arrivalDateTime: t.arrival_date_time ?? t.arrivalDateTime ?? null,
     totalCapacity: t.total_capacity ?? t.totalCapacity ?? 1000,
   }))
-  const deliveries: Delivery[] = await deliveriesRes.json()
+  const rawDeliveries = await deliveriesRes.json()
+  const deliveries: Delivery[] = (rawDeliveries || []).map((d: any) => ({
+    id: d.delivery_id ?? d.id ?? d[0],
+    status: String(d.status ?? d[5] ?? 'Pending'),
+    routeName: d.route_name ?? undefined,
+    routeStart: d.route_start ?? undefined,
+    routeEnd: d.route_end ?? undefined,
+    deliveryDateTime: d.delivery_date_time ?? d.scheduled_time ?? null,
+    startTime: d.start_time ?? null,
+    endTime: d.end_time ?? null,
+  }))
   const orders: Order[] = await ordersRes.json()
   // employees endpoint from backend B returns { employee_id, firstName, lastName, type }
   const rawEmployees = await employeesRes.json()
@@ -120,7 +139,7 @@ function ManagerDashboard() {
 
         // Process data to calculate stats
         const ongoingTrainTrips = trainTrips.filter(
-          (trip) => new Date(trip.departureDateTime) > new Date()
+          (trip) => !!trip.departureDateTime && new Date(trip.departureDateTime) > new Date()
         ).length
         const trucksOnRoute = deliveries.filter(
           (delivery) => delivery.status === 'In Transit'
@@ -168,6 +187,67 @@ function ManagerDashboard() {
           }
         })
         setTrainUtilization(utilizationData)
+
+        // Build Daily Schedule Overview events (today only)
+        const today = new Date()
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+
+        const events: Array<{ time: string; label: string; meta?: string; type: 'train' | 'truck' }> = []
+        // Train departures/arrivals
+        for (const t of trainTrips) {
+          if (t.departureDateTime) {
+            const dt = new Date(t.departureDateTime)
+            if (dt >= startOfDay && dt < endOfDay) {
+              events.push({
+                time: dt.toISOString(),
+                label: `Train #${t.id}: ${t.departureCity} → ${t.arrivalCity}`,
+                meta: 'Departure',
+                type: 'train',
+              })
+            }
+          }
+          if (t.arrivalDateTime) {
+            const at = new Date(t.arrivalDateTime)
+            if (at >= startOfDay && at < endOfDay) {
+              events.push({
+                time: at.toISOString(),
+                label: `Train #${t.id}: ${t.departureCity} → ${t.arrivalCity}`,
+                meta: 'Arrival',
+                type: 'train',
+              })
+            }
+          }
+        }
+        // Truck deliveries (scheduled times if available)
+        for (const d of deliveries) {
+          const route = d.routeName || (d.routeStart && d.routeEnd ? `${d.routeStart} → ${d.routeEnd}` : 'Delivery')
+          if (d.deliveryDateTime) {
+            const st = new Date(d.deliveryDateTime)
+            if (st >= startOfDay && st < endOfDay) {
+              events.push({
+                time: st.toISOString(),
+                label: `Delivery #${d.id}: ${route}`,
+                meta: d.status,
+                type: 'truck',
+              })
+            }
+          }
+          // Optional: endTime display
+          if (d.endTime) {
+            const et = new Date(d.endTime)
+            if (et >= startOfDay && et < endOfDay) {
+              events.push({
+                time: et.toISOString(),
+                label: `Delivery #${d.id}: ${route}`,
+                meta: 'Completed',
+                type: 'truck',
+              })
+            }
+          }
+        }
+        events.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+        setDailyEvents(events)
 
         // alerts
         const alertsJson = await alertsRes.json()
@@ -234,7 +314,22 @@ function ManagerDashboard() {
               <option>📅 Today</option>
             </select>
           </div>
-          {/* This would be a timeline component in a real app */}
+          <div className="event-list">
+            {dailyEvents.length === 0 && (
+              <div className="event-empty">No scheduled train departures/arrivals or truck tasks for today.</div>
+            )}
+            {dailyEvents.map((e, idx) => (
+              <div key={idx} className="event-item">
+                <div className="event-time">{new Date(e.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                <div className="event-body">
+                  <div className="event-title">{e.label}</div>
+                  <div className="event-meta">
+                    <span className={`event-badge ${e.type}`}>{e.meta ?? ''}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="chart-card">

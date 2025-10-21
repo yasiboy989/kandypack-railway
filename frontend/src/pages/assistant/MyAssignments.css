@@ -14,38 +14,35 @@
   line-height: 1.2;
 }
 
-.truck-assignment-info {
+/* Stacked details card */
+.assignment-details-card {
   background-color: var(--secondary-color-1);
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
   border: 1px solid var(--secondary-color-4);
-  font-weight: 500;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  max-width: 1100px;
-  margin: 0 auto 1rem auto;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 0 auto 1.25rem auto;
+  /* Make details flow in responsive columns */
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 24px;
+}
+@media (min-width: 900px) {
+  .assignment-details-card { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 920px) {
+  .assignment-details-card { max-width: 1100px; }
 }
 
-.truck-assignment-info .status-badge { margin-left: 4px; }
-
-.truck-assignment-info .chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--secondary-color-4);
-  max-width: 100%;
+.detail-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--secondary-color-4);
 }
-
-.truck-assignment-info .chip-label {
-  color: var(--neutral-400);
-}
+.detail-row:last-child { border-bottom: none; }
+.detail-key { color: var(--neutral-400); }
+.detail-val { font-weight: 500; }
 
 .assignments-list { margin: 1.5rem auto 0; }
 @media (min-width: 920px) {
@@ -54,11 +51,17 @@
 
 .my-assignments .assignment-card {
   background-color: var(--secondary-color-1);
-  padding: 1.5rem;
-  border-radius: 8px;
+  padding: 1.25rem 1.5rem 1.25rem 1.5rem;
+  border-radius: 10px;
   border: 1px solid var(--secondary-color-4);
   box-shadow: 0 8px 28px 0 rgba(1, 5, 17, 0.30);
   margin: 0 auto;
+}
+
+.my-assignments .assignment-card .card-header {
+  border-bottom: 1px solid var(--secondary-color-4);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .card-header {
@@ -134,10 +137,15 @@
 
 /* Let auto-fit decide the correct number of columns based on space */
 
+/* Force exactly 3 columns on desktop */
+@media (min-width: 1024px) {
+  .orders-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 .order-card {
-  background: var(--secondary-color-1);
+  background: rgba(255,255,255,0.02);
   border: 1px solid var(--secondary-color-4);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -154,15 +162,13 @@
   align-items: center;
 }
 
-.order-title {
-  font-weight: 600;
-}
+.order-title { font-weight: 600; letter-spacing: 0.2px; }
 
 .order-body { display: grid; gap: 6px; flex: 1; min-height: 56px; }
 @media (min-width: 1100px) {
   .order-body { gap: 8px; min-height: 68px; }
 }
-.order-meta { display: grid; grid-template-columns: 90px 1fr; gap: 8px; align-items: start; }
+.order-meta { display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: start; }
 @media (min-width: 1100px) { .order-meta { grid-template-columns: 110px 1fr; gap: 10px; } }
 .order-meta .meta-label { color: var(--neutral-400); }
 .order-meta .meta-value {
@@ -173,6 +179,9 @@
   overflow-wrap: anywhere;
 }
 
-.order-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+.order-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.order-actions .left { display:flex; gap:8px; }
+
+.order-actions .btn-secondary { padding: 10px 12px; font-size: 12px; }
 
 /* No hard cap on columns; cards grow wider instead of getting taller */

@@ -119,15 +119,15 @@ function MyAssignments() {
       <div className="page-header">
         <h1>My Assignments</h1>
       </div>
-      {/* Inline, compact summary banner matching app style */}
+      {/* Simple stacked details card (row-by-row) */}
       {currentDelivery && (
-        <div className="truck-assignment-info" aria-label="Current assignment summary">
-          <span className="chip"><span className="chip-label">Delivery</span> {currentDelivery.delivery_id}</span>
-          <span className="chip"><span className="chip-label">Route</span> {currentDelivery.route_name || `${currentDelivery.route_start ?? ''} → ${currentDelivery.route_end ?? ''}`}</span>
-          <span className="chip"><span className="chip-label">Truck</span> {currentDelivery.truck_plate || '-'}</span>
-          <span className="chip"><span className="chip-label">Driver</span> {currentDelivery.driver_name || '-'}</span>
-          <span className="chip"><span className="chip-label">When</span> {currentDelivery.delivery_date_time ? new Date(currentDelivery.delivery_date_time).toLocaleString() : '-'}</span>
-          <span className="chip"><span className="chip-label">Status</span> <span className={`status-badge ${currentDelivery.status.toLowerCase().replace(/\s+/g,'-')}`}>{currentDelivery.status}</span></span>
+        <div className="assignment-details-card">
+          <div className="detail-row"><div className="detail-key">Delivery</div><div className="detail-val">{currentDelivery.delivery_id}</div></div>
+          <div className="detail-row"><div className="detail-key">Route</div><div className="detail-val">{currentDelivery.route_name || `${currentDelivery.route_start ?? ''} → ${currentDelivery.route_end ?? ''}`}</div></div>
+          <div className="detail-row"><div className="detail-key">When</div><div className="detail-val">{currentDelivery.delivery_date_time ? new Date(currentDelivery.delivery_date_time).toLocaleString() : '-'}</div></div>
+          <div className="detail-row"><div className="detail-key">Truck</div><div className="detail-val">{currentDelivery.truck_plate || '-'}</div></div>
+          <div className="detail-row"><div className="detail-key">Driver</div><div className="detail-val">{currentDelivery.driver_name || '-'}</div></div>
+          <div className="detail-row"><div className="detail-key">Status</div><div className="detail-val"><span className={`status-badge ${currentDelivery.status.toLowerCase().replace(/\s+/g,'-')}`}>{currentDelivery.status}</span></div></div>
         </div>
       )}
       {loading && <div>Loading...</div>}
@@ -146,7 +146,7 @@ function MyAssignments() {
       <div className="assignments-list">
         <div className="assignment-card">
           <div className="card-header">
-            <h3>Orders in this Delivery</h3>
+            <h3>Orders {orders.length ? `(${orders.length})` : ''}</h3>
           </div>
           {ordersLoading && <div className="orders-loading">Loading orders…</div>}
           {ordersError && <div className="orders-error">Failed to load orders: {ordersError}</div>}
@@ -170,7 +170,7 @@ function MyAssignments() {
                       <div className="order-meta"><span className="meta-label">Customer</span><span className="meta-value">{o.customer_name ?? '-'}</span></div>
                       <div className="order-meta"><span className="meta-label">Address</span><span className="meta-value">{o.address ?? '-'}</span></div>
                     </div>
-                    <div className="order-actions">
+                    <div className="order-actions" style={{ gap: 8 }}>
                       <button
                         className="btn-primary"
                         onClick={async () => {

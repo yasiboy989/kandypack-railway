@@ -16,8 +16,9 @@
 
 .filters-bar {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .search-input,
@@ -35,22 +36,48 @@
   border: 1px solid var(--secondary-color-4);
   border-radius: 8px;
   overflow-x: auto;
+  padding: 0.25rem 0;
 }
 
 .trips-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 800px;
 }
 
 .trips-table th,
 .trips-table td {
-  padding: 1rem 1.5rem;
+  padding: 0.875rem 1.25rem;
   text-align: left;
   border-bottom: 1px solid var(--secondary-color-4);
 }
 
-.trips-table th {
+.trips-table thead th {
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--secondary-color-1);
+  z-index: 1;
+}
+
+.trips-table tbody tr:nth-child(odd) {
+  background: rgba(255,255,255,0.02);
+}
+
+/* Numbers right-aligned for readability */
+.trips-table th:nth-child(1),
+.trips-table td:nth-child(1),
+.trips-table th:nth-child(5),
+.trips-table td:nth-child(5),
+.trips-table th:nth-child(6),
+.trips-table td:nth-child(6) {
+  text-align: center;
+}
+
+/* Allocations block heading spacing */
+.trips-table-container.allocations > h2 {
+  padding: 0.75rem 1rem 0.25rem 1rem;
+  margin: 0;
 }
 
 .status-badge {
@@ -103,6 +130,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
@@ -112,6 +140,9 @@
   border-radius: 8px;
   width: 100%;
   max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -157,5 +188,16 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
+  position: sticky;
+  bottom: 0;
+  background: var(--secondary-color-1);
+  padding-top: 0.5rem;
+}
+
+/* Scroll body inside modal if content grows */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
 }

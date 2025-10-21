@@ -17,6 +17,14 @@
   border-radius: 8px;
   overflow-x: auto;
 }
+.branch-chip {
+  background: rgba(14, 67, 251, 0.2);
+  color: var(--blue);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
 
 .orders-table {
   width: 100%;
@@ -56,3 +64,54 @@
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
 }
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: var(--secondary-color-1);
+  width: min(720px, 92vw);
+  border-radius: 10px;
+  border: 1px solid var(--secondary-color-4);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--secondary-color-4);
+}
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+.modal-body {
+  padding: 12px 16px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px 16px 16px;
+  border-top: 1px solid var(--secondary-color-4);
+}
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.items-table th, .items-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--secondary-color-4);
+}
+.items-table th { text-align: left; font-weight: 600; }

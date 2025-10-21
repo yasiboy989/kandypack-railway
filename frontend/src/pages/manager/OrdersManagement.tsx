@@ -14,21 +14,29 @@ interface DeliveryOption {
   status: string
 }
 
+interface Allocation { train_trip_id: number | string; order_id: number | string; allocated_space?: number }
+
 function OrdersManagement() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deliveries, setDeliveries] = useState<DeliveryOption[]>([])
+  const [allocations, setAllocations] = useState<Allocation[]>([])
   
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-  const response = await apiFetch('/orders')
-        if (!response.ok) {
+        const [ordersRes, delivRes, schedulesRes] = await Promise.all([
+          apiFetch('/orders'),
+          apiFetch('/deliveries/deliveries'),
+          apiFetch('/train-trips/train-schedules'),
+        ])
+
+        if (!ordersRes.ok) {
           throw new Error('Failed to fetch orders')
         }
-        const raw = await response.json()
+        const raw = await ordersRes.json()
         const mapped: Order[] = (raw || []).map((r: any) => ({
           order_id: r.order_id ?? r.id ?? r[0],
           status: String(r.status ?? r[1] ?? 'Pending'),
@@ -36,7 +44,6 @@ function OrdersManagement() {
         setOrders(mapped)
 
         // Fetch deliveries list for assignment dropdown
-        const delivRes = await apiFetch('/deliveries/deliveries')
         if (delivRes.ok) {
           const list = await delivRes.json()
           const mappedDeliveries: DeliveryOption[] = (list || []).map((d: any) => ({
@@ -46,6 +53,17 @@ function OrdersManagement() {
             status: d.status ?? 'Pending',
           }))
           setDeliveries(mappedDeliveries)
+        }
+
+        // Fetch current train allocations to hide Allocate button
+        if (schedulesRes.ok) {
+          const sched = await schedulesRes.json()
+          const norm: Allocation[] = (sched || []).map((s: any) => ({
+            train_trip_id: s.train_trip_id ?? s[0],
+            order_id: s.order_id ?? s[1],
+            allocated_space: Number(s.allocated_space ?? s[2] ?? 0),
+          }))
+          setAllocations(norm)
         }
       } catch (err) {
         if (err instanceof Error) {
@@ -92,6 +110,7 @@ function OrdersManagement() {
           <tbody>
             {orders.map((order) => {
               const statusClass = order.status.toLowerCase().replace(/\s+/g, '-')
+              const allocation = allocations.find((a) => String(a.order_id) === String(order.order_id))
               return (
                 <tr key={order.order_id}>
                   <td>{order.order_id}</td>
@@ -99,21 +118,25 @@ function OrdersManagement() {
                     <span className={`status-badge ${statusClass}`}>{order.status}</span>
                   </td>
                   <td>
-                    <button
-                      className="btn-secondary"
-                      onClick={async () => {
-                        try {
-                          const res = await apiFetch(`/orders/${order.order_id}/allocate-train`, { method: 'POST' })
-                          if (!res.ok) throw new Error('Failed to allocate')
-                          const data = await res.json()
-                          alert(`Allocated: ${JSON.stringify(data)}`)
-                        } catch (e) {
-                          if (e instanceof Error) alert(e.message)
-                        }
-                      }}
-                    >
-                      Allocate to Train
-                    </button>
+                    {allocation ? (
+                      <span className="status-badge scheduled">Allocated (Trip {String(allocation.train_trip_id)})</span>
+                    ) : (
+                      <button
+                        className="btn-secondary"
+                        onClick={async () => {
+                          try {
+                            const res = await apiFetch(`/orders/${order.order_id}/allocate-train`, { method: 'POST' })
+                            if (!res.ok) throw new Error('Failed to allocate')
+                            const data = await res.json()
+                            alert(`Allocated: ${JSON.stringify(data)}`)
+                          } catch (e) {
+                            if (e instanceof Error) alert(e.message)
+                          }
+                        }}
+                      >
+                        Allocate to Train
+                      </button>
+                    )}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

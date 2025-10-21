@@ -98,6 +98,28 @@
   font-weight: 600;
 }
 
+/* Event list (Daily Schedule Overview) */
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.event-empty { color: var(--neutral-400); padding: 6px 4px; }
+.event-item {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 12px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--secondary-color-4);
+}
+.event-item:last-child { border-bottom: none; }
+.event-time { color: var(--neutral-400); font-weight: 500; }
+.event-title { font-weight: 600; }
+.event-meta { margin-top: 2px; }
+.event-badge { padding: 2px 8px; border-radius: 9999px; font-size: 12px; }
+.event-badge.train { background-color: rgba(14, 67, 251, 0.2); color: var(--blue); }
+.event-badge.truck { background-color: var(--green-50); color: var(--green-300); }
+
 .alerts-list {
   display: flex;
   flex-direction: column;

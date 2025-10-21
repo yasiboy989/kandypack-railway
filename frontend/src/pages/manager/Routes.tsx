@@ -8,7 +8,6 @@ type RouteItem = {
   origin?: string
   destination?: string
   estimated_minutes?: number
-  assigned_truck_id?: number | null
 }
 
 function Routes() {
@@ -18,7 +17,7 @@ function Routes() {
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<RouteItem | null>(null)
-  const [form, setForm] = useState<RouteItem>({ name: '', origin: '', destination: '', estimated_minutes: 0, assigned_truck_id: null })
+  const [form, setForm] = useState<RouteItem>({ name: '', origin: '', destination: '', estimated_minutes: 0 })
 
   useEffect(() => {
     fetchRoutes()
@@ -35,7 +34,6 @@ function Routes() {
       origin,
       destination,
       estimated_minutes: item.estimated_minutes ?? item.estimatedMinutes ?? item.est_minutes ?? 0,
-      assigned_truck_id: item.assigned_truck_id ?? item.assignedTruckId ?? item.assigned_truck ?? null,
     }
   }
 
@@ -62,7 +60,7 @@ function Routes() {
 
   const openAdd = () => {
     setEditing(null)
-    setForm({ name: '', origin: '', destination: '', estimated_minutes: 0, assigned_truck_id: null })
+    setForm({ name: '', origin: '', destination: '', estimated_minutes: 0 })
     setShowModal(true)
   }
 
@@ -137,7 +135,6 @@ function Routes() {
               <th>Origin</th>
               <th>Destination</th>
               <th>Est. (min)</th>
-              <th>Assigned Truck</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -149,7 +146,6 @@ function Routes() {
                 <td>{r.origin}</td>
                 <td>{r.destination}</td>
                 <td>{r.estimated_minutes}</td>
-                <td>{r.assigned_truck_id ?? '-'}</td>
                 <td>
                   <div className="action-buttons">
                     <button className="btn-icon" onClick={() => openEdit(r)}>✏️</button>
@@ -185,10 +181,6 @@ function Routes() {
               <div className="form-group">
                 <label>Estimated Minutes</label>
                 <input type="number" className="input-field" value={form.estimated_minutes} onChange={(e) => setForm({ ...form, estimated_minutes: Number(e.target.value) })} />
-              </div>
-              <div className="form-group">
-                <label>Assigned Truck ID</label>
-                <input type="number" className="input-field" value={form.assigned_truck_id ?? ''} onChange={(e) => setForm({ ...form, assigned_truck_id: e.target.value ? Number(e.target.value) : null })} />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>

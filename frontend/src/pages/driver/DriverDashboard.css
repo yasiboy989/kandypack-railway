@@ -83,6 +83,21 @@
   color: var(--blue);
 }
 
+.status-badge.pending {
+  background-color: var(--yellow-50);
+  color: var(--yellow-300);
+}
+
+.status-badge.delivered {
+  background-color: var(--green-50);
+  color: var(--green-300);
+}
+
+.status-badge.failed {
+  background-color: var(--red-50);
+  color: var(--red-300);
+}
+
 .task-actions {
   margin-top: 1.5rem;
   text-align: right;

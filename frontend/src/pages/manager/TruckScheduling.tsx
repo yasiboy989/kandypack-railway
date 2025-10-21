@@ -277,7 +277,7 @@ function TruckScheduling() {
         <table className="routes-table">
           <thead>
             <tr>
-              <th>Route ID</th>
+              <th>Delivery ID</th>
               <th>Route Name</th>
               <th>Truck</th>
               <th>Driver</th>

@@ -1,0 +1,24 @@
+.truck-loading { padding: 2rem; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.page-header h1 { font-size: 2rem; font-weight: bold; }
+.branch-chip { background: rgba(14, 67, 251, 0.2); color: var(--blue); padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+
+.orders-table-container { background-color: var(--secondary-color-1); border: 1px solid var(--secondary-color-4); border-radius: 8px; overflow-x: auto; }
+.orders-table { width: 100%; border-collapse: collapse; }
+.orders-table th, .orders-table td { padding: 1rem 1.25rem; text-align: left; border-bottom: 1px solid var(--secondary-color-4); }
+.orders-table thead th { font-weight: 600; }
+.orders-table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+.status-badge { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 500; text-transform: capitalize; }
+.status-badge.pending { background-color: var(--yellow-50); color: var(--yellow-300); }
+.status-badge.delivered { background-color: var(--green-50); color: var(--green-300); }
+
+/* Modal styles */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: var(--secondary-color-1); width: min(720px, 92vw); border-radius: 10px; border: 1px solid var(--secondary-color-4); box-shadow: 0 10px 30px rgba(0,0,0,0.35); overflow: hidden; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--secondary-color-4); }
+.modal-close { background: transparent; border: none; font-size: 22px; cursor: pointer; }
+.modal-body { padding: 12px 16px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px 16px 16px; border-top: 1px solid var(--secondary-color-4); }
+.items-table { width: 100%; border-collapse: collapse; }
+.items-table th, .items-table td { padding: 10px 12px; border-bottom: 1px solid var(--secondary-color-4); }
+.items-table th { text-align: left; font-weight: 600; }

@@ -112,6 +112,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000; /* ensure on top */
 }
 
 .modal-content {
@@ -121,6 +122,9 @@
   border-radius: 8px;
   width: 100%;
   max-width: 500px;
+  max-height: 90vh; /* prevent overflow off-screen */
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -166,5 +170,16 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
+  position: sticky; /* keep actions visible when scrolling */
+  bottom: 0;
+  background: var(--secondary-color-1);
+  padding-top: 0.5rem;
+}
+
+/* Make form body scroll within the modal when content is tall */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
 }

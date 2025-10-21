@@ -123,6 +123,52 @@ button.btn-secondary {
   color: var(--neutral-100);
 }
 
+/* Colored button variants */
+.btn-success {
+  display: inline-flex;
+  padding: 14px 12px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  background: var(--green-300);
+  color: var(--neutral-100);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.btn-warning {
+  display: inline-flex;
+  padding: 14px 12px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  background: var(--yellow-300);
+  color: var(--neutral-800);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.btn-danger {
+  display: inline-flex;
+  padding: 14px 12px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  background: var(--red-300);
+  color: var(--neutral-100);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+/* Ensure anchor links with btn-secondary aren't overridden by page CSS */
+a.btn-secondary { background: var(--neutral-700); color: var(--neutral-100); text-decoration: none; }
+
 .btn-small {
   padding: 8px;
   font-size: 10px;

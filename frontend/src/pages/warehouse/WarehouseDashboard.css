@@ -2,9 +2,7 @@
   padding: 2rem;
 }
 
-.dashboard-header {
-  margin-bottom: 2rem;
-}
+.dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 
 .page-title {
   font-size: 2rem;
@@ -24,6 +22,9 @@
   border-radius: 8px;
   border: 1px solid var(--secondary-color-4);
 }
+.stat-link { text-decoration: none; color: inherit; display: block; transition: border-color 0.15s ease, transform 0.05s ease; }
+.stat-link:hover { border-color: var(--neutral-400); }
+.stat-link:active { transform: translateY(1px); }
 
 .stat-header {
   display: flex;
@@ -58,12 +59,8 @@
   margin-bottom: 2rem;
 }
 
-.chart-card {
-  background-color: var(--secondary-color-1);
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid var(--secondary-color-4);
-}
+.chart-card { background-color: var(--secondary-color-1); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--secondary-color-4); }
+.branch-chip { background: rgba(14, 67, 251, 0.2); color: var(--blue); padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
 
 .card-header h2 {
   font-size: 1.25rem;

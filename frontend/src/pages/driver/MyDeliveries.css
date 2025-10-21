@@ -71,3 +71,70 @@
   background-color: var(--red-50);
   color: var(--red-300);
 }
+
+/* Actions and stops merged from DeliveryActions */
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.stops-section {
+  text-align: left;
+  margin-top: 1.5rem;
+}
+
+.stops-section h3 {
+  margin: 0 0 0.75rem;
+}
+
+.orders-loading, .orders-error, .orders-empty {
+  color: var(--neutral-300);
+  margin: 0.5rem 0 1rem;
+}
+
+.stops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.stop-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--secondary-color-4);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.stop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.stop-title {
+  font-weight: 600;
+}
+
+.stop-body .meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.25rem 0;
+}
+
+.meta-label {
+  color: var(--neutral-300);
+}
+
+.meta-value {
+  color: var(--neutral-100);
+  font-weight: 500;
+}
+
+.stop-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}

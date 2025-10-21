@@ -205,7 +205,7 @@ function TrainScheduling() {
         </table>
       </div>
 
-      <div className="trips-table-container" style={{ marginTop: 16 }}>
+      <div className="trips-table-container allocations" style={{ marginTop: 16 }}>
         <h2>Allocations</h2>
         <table className="trips-table">
           <thead>

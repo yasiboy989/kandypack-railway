@@ -11,17 +11,14 @@
   font-weight: bold;
 }
 
-.profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
-}
-
-.profile-card, .history-card {
+/* Match driver single-card layout */
+.profile-card {
   background-color: var(--secondary-color-1);
   padding: 2rem;
   border-radius: 8px;
   border: 1px solid var(--secondary-color-4);
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .profile-header {
@@ -99,37 +96,4 @@
   background: var(--gradient);
 }
 
-.history-card h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--secondary-color-4);
-  padding: 1rem;
-  border-radius: 6px;
-}
-
-.history-customer {
-  font-weight: 500;
-}
-
-.history-order {
-  font-size: 0.875rem;
-  color: var(--neutral-400);
-}
-
-.history-date {
-  font-weight: 500;
-  color: var(--neutral-300);
-}
+/* Remove history styles since assistant profile mirrors driver layout */
