@@ -9,24 +9,56 @@
   margin-bottom: 2rem;
 }
 
+.my-assignments .page-header h1 {
+  font-size: 32px;
+  line-height: 1.2;
+}
+
 .truck-assignment-info {
   background-color: var(--secondary-color-1);
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   border-radius: 6px;
   border: 1px solid var(--secondary-color-4);
   font-weight: 500;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  max-width: 1100px;
+  margin: 0 auto 1rem auto;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
-.assignments-list {
-  display: grid;
-  gap: 1.5rem;
+.truck-assignment-info .status-badge { margin-left: 4px; }
+
+.truck-assignment-info .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--secondary-color-4);
+  max-width: 100%;
 }
 
-.assignment-card {
+.truck-assignment-info .chip-label {
+  color: var(--neutral-400);
+}
+
+.assignments-list { margin: 1.5rem auto 0; }
+@media (min-width: 920px) {
+  .assignments-list { max-width: 1100px; }
+}
+
+.my-assignments .assignment-card {
   background-color: var(--secondary-color-1);
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid var(--secondary-color-4);
+  box-shadow: 0 8px 28px 0 rgba(1, 5, 17, 0.30);
+  margin: 0 auto;
 }
 
 .card-header {
@@ -34,6 +66,10 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+.my-assignments .card-header h3 {
+  font-size: 24px;
 }
 
 .card-header h3 {
@@ -78,3 +114,65 @@
   background-color: var(--green-50);
   color: var(--green-300);
 }
+
+/* Orders grid responsive */
+.orders-loading, .orders-error, .orders-empty { padding: 0.5rem 1rem; }
+.orders-error { color: var(--yellow-300); }
+.orders-empty { color: var(--neutral-400); }
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+@media (min-width: 600px) {
+  .orders-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.1rem; }
+}
+@media (min-width: 1100px) {
+  .orders-grid { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem; }
+}
+
+/* Let auto-fit decide the correct number of columns based on space */
+
+.order-card {
+  background: var(--secondary-color-1);
+  border: 1px solid var(--secondary-color-4);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 170px;
+}
+@media (min-width: 1100px) {
+  .order-card { padding: 1.25rem 1.25rem 1rem 1.25rem; gap: 12px; min-height: 200px; }
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-title {
+  font-weight: 600;
+}
+
+.order-body { display: grid; gap: 6px; flex: 1; min-height: 56px; }
+@media (min-width: 1100px) {
+  .order-body { gap: 8px; min-height: 68px; }
+}
+.order-meta { display: grid; grid-template-columns: 90px 1fr; gap: 8px; align-items: start; }
+@media (min-width: 1100px) { .order-meta { grid-template-columns: 110px 1fr; gap: 10px; } }
+.order-meta .meta-label { color: var(--neutral-400); }
+.order-meta .meta-value {
+  font-weight: 500;
+  text-align: left;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.order-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+
+/* No hard cap on columns; cards grow wider instead of getting taller */

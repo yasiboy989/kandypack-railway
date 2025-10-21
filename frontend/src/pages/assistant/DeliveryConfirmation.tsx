@@ -1,38 +1,87 @@
-import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import apiFetch from '../../utils/api'
 import './DeliveryConfirmation.css'
+
+interface DeliveryRow {
+  delivery_id: number | string
+  route_name?: string
+  route_start?: string
+  route_end?: string
+  truck_plate?: string
+  status?: string
+}
 
 function DeliveryConfirmation() {
   const [searchParams] = useSearchParams()
-  const orderId = searchParams.get('orderId')
+  const deliveryId = searchParams.get('deliveryId')
+  const [delivery, setDelivery] = useState<DeliveryRow | null>(null)
   const [notes, setNotes] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
 
-  const delivery = {
-    customerName: 'Graham Hills',
-    address: '123, Main Street, Colombo 07',
+  useEffect(() => {
+    const fetchDeliveryDetails = async () => {
+      try {
+        if (!deliveryId) return
+        // There is no single-delivery endpoint in backend; fetch all and pick one
+        const res = await apiFetch('/deliveries/deliveries')
+        if (!res.ok) throw new Error('Failed to fetch deliveries')
+        const list = await res.json()
+        const found = (list || []).find((d: any) => String(d.delivery_id ?? d.id ?? d[0]) === String(deliveryId))
+        setDelivery(found || null)
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (deliveryId) {
+      fetchDeliveryDetails()
+    }
+  }, [deliveryId])
+
+  const handleConfirm = async () => {
+    try {
+      if (!deliveryId) return
+      const res = await apiFetch(`/deliveries/${deliveryId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'delivered', notes }),
+      })
+      if (!res.ok) throw new Error('Failed to confirm delivery')
+      navigate('/assistant')
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message)
+      }
+    }
   }
 
-  const handleConfirm = () => {
-    // Handle confirmation logic here
-    alert(`Delivery for order ${orderId} confirmed!`)
-  }
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
+  if (!delivery) return <div>Delivery not found</div>
 
   return (
     <div className="delivery-confirmation">
       <div className="page-header">
         <h1>Confirm Delivery</h1>
-        <p>Order ID: {orderId}</p>
+        <p>Delivery ID: {deliveryId}</p>
       </div>
 
       <div className="confirmation-card">
         <div className="card-body">
           <div className="detail-item">
-            <div className="detail-label">Customer</div>
-            <div className="detail-value">{delivery.customerName}</div>
+            <div className="detail-label">Route</div>
+            <div className="detail-value">{delivery.route_name || `${delivery.route_start ?? ''} → ${delivery.route_end ?? ''}`}</div>
           </div>
           <div className="detail-item">
-            <div className="detail-label">Address</div>
-            <div className="detail-value">{delivery.address}</div>
+            <div className="detail-label">Truck</div>
+            <div className="detail-value">{delivery.truck_plate || '-'}</div>
           </div>
           <div className="notes-section">
             <label htmlFor="notes">Add Notes (Optional)</label>

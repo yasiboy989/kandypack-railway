@@ -1,21 +1,66 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import apiFetch from '../../utils/api'
 import './OrdersManagement.css'
 
 interface Order {
-  id: string
-  customerName: string
-  orderDate: string
-  total: number
-  status: 'pending' | 'scheduled' | 'in-transit' | 'delivered'
+  order_id: number
+  status: string
+}
+
+interface DeliveryOption {
+  delivery_id: number | string
+  route_label: string
+  truck_label: string
+  status: string
 }
 
 function OrdersManagement() {
-  const [orders, setOrders] = useState<Order[]>([
-    { id: 'ORD001', customerName: 'John Carter', orderDate: '2024-01-30', total: 2500, status: 'delivered' },
-    { id: 'ORD002', customerName: 'Sophie Moore', orderDate: '2024-01-29', total: 1500, status: 'in-transit' },
-    { id: 'ORD003', customerName: 'Matt Cannon', orderDate: '2024-01-28', total: 3500, status: 'scheduled' },
-    { id: 'ORD004', customerName: 'Graham Hills', orderDate: '2024-01-27', total: 1000, status: 'pending' },
-  ])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [deliveries, setDeliveries] = useState<DeliveryOption[]>([])
+  
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+  const response = await apiFetch('/orders')
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders')
+        }
+        const raw = await response.json()
+        const mapped: Order[] = (raw || []).map((r: any) => ({
+          order_id: r.order_id ?? r.id ?? r[0],
+          status: String(r.status ?? r[1] ?? 'Pending'),
+        }))
+        setOrders(mapped)
+
+        // Fetch deliveries list for assignment dropdown
+        const delivRes = await apiFetch('/deliveries/deliveries')
+        if (delivRes.ok) {
+          const list = await delivRes.json()
+          const mappedDeliveries: DeliveryOption[] = (list || []).map((d: any) => ({
+            delivery_id: d.delivery_id ?? d.id ?? d[0],
+            route_label: d.route_name ?? (d.route_start && d.route_end ? `${d.route_start} → ${d.route_end}` : 'Route'),
+            truck_label: d.truck_plate ?? (d.truck_id ? `Truck ${d.truck_id}` : '-'),
+            status: d.status ?? 'Pending',
+          }))
+          setDeliveries(mappedDeliveries)
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }, [])
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
 
   return (
     <div className="orders-management">
@@ -39,32 +84,69 @@ function OrdersManagement() {
           <thead>
             <tr>
               <th>Order ID</th>
-              <th>Customer Name</th>
-              <th>Order Date</th>
-              <th>Total (LKR)</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th>Train</th>
+              <th>Truck Delivery</th>
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td>{order.id}</td>
-                <td>{order.customerName}</td>
-                <td>{order.orderDate}</td>
-                <td>{order.total.toFixed(2)}</td>
-                <td>
-                  <span className={`status-badge ${order.status}`}>
-                    {order.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <button className="btn-primary">View Details</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {orders.map((order) => {
+              const statusClass = order.status.toLowerCase().replace(/\s+/g, '-')
+              return (
+                <tr key={order.order_id}>
+                  <td>{order.order_id}</td>
+                  <td>
+                    <span className={`status-badge ${statusClass}`}>{order.status}</span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn-secondary"
+                      onClick={async () => {
+                        try {
+                          const res = await apiFetch(`/orders/${order.order_id}/allocate-train`, { method: 'POST' })
+                          if (!res.ok) throw new Error('Failed to allocate')
+                          const data = await res.json()
+                          alert(`Allocated: ${JSON.stringify(data)}`)
+                        } catch (e) {
+                          if (e instanceof Error) alert(e.message)
+                        }
+                      }}
+                    >
+                      Allocate to Train
+                    </button>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <select
+                        className="input-field"
+                        defaultValue=""
+                        onChange={async (e) => {
+                          const deliveryId = e.target.value
+                          if (!deliveryId) return
+                          try {
+                            // Hypothetical existing API
+                            const res = await apiFetch(`/deliveries/${deliveryId}/orders/${order.order_id}`, { method: 'POST' })
+                            if (!res.ok) throw new Error('Failed to assign to delivery')
+                            alert(`Order ${order.order_id} assigned to delivery ${deliveryId}`)
+                          } catch (e) {
+                            if (e instanceof Error) alert(e.message)
+                          }
+                        }}
+                      >
+                        <option value="" disabled>
+                          Select delivery…
+                        </option>
+                        {deliveries.map((d) => (
+                          <option key={d.delivery_id} value={String(d.delivery_id)}>
+                            #{d.delivery_id} • {d.route_label} • {d.truck_label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

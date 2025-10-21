@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
-import CustomerPortal from './pages/CustomerPortal'
+// import CustomerPortal from './pages/CustomerPortal'
 import AdminPortal from './pages/AdminPortal'
 import ManagerPortal from './pages/ManagerPortal'
 import WarehousePortal from './pages/WarehousePortal'
@@ -14,7 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/customer/*" element={<CustomerPortal />} />
+        {/* <Route path="/customer/*" element={<CustomerPortal />} /> */}
         <Route path="/admin/*" element={<AdminPortal />} />
         <Route path="/manager/*" element={<ManagerPortal />} />
         <Route path="/warehouse/*" element={<WarehousePortal />} />

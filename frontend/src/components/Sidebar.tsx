@@ -20,7 +20,10 @@ const menuItems = {
     { icon: '📊', label: 'Dashboard', path: '/manager' },
     { icon: '🚂', label: 'Train Scheduling', path: '/manager/train' },
     { icon: '🚛', label: 'Truck Scheduling', path: '/manager/truck' },
-    { icon: '📦', label: 'Orders Management', path: '/manager/orders' },
+    { icon: '🚚', label: 'Trucks', path: '/manager/trucks' },
+    { icon: '🗺️', label: 'Routes', path: '/manager/routes' },
+    { icon: '�', label: 'Employees', path: '/manager/employees' },
+    { icon: '��📦', label: 'Orders Management', path: '/manager/orders' },
     { icon: '📈', label: 'Reports', path: '/manager/reports' },
   ],
   warehouse: [
@@ -38,8 +41,8 @@ const menuItems = {
   ],
   assistant: [
     { icon: '📋', label: 'My Assignments', path: '/assistant' },
-    { icon: '✓', label: 'Delivery Confirmation', path: '/assistant/confirmation' },
     { icon: '🔔', label: 'Notifications', path: '/assistant/notifications' },
+    { icon: '👤', label: 'Profile', path: '/assistant/profile' },
   ],
   customer: [
     { icon: '📊', label: 'Dashboard', path: '/customer' },
