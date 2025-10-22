@@ -15,17 +15,19 @@ try:
     password = result.password
     database = result.path[1:]
     hostname = result.hostname
-    port = result.port
+    port = result.port or 5432  # Use default 5432 if port is not specified
 
     conn = psycopg2.connect(
         host=hostname,
         database=database,
         user=username,
         password=password,
-        port=port
+        port=port,
+        sslmode='require'
     )
     print("✅ Database connected successfully!")
     conn.close()
+
 except Exception as e:
     print("❌ Database connection failed!")
     print(e)

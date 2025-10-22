@@ -1,5 +1,6 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './Sidebar.css'
+import { useAuth } from '../context/AuthContext'
 
 interface SidebarProps {
   userType: 'admin' | 'manager' | 'warehouse' | 'driver' | 'assistant' | 'customer'
@@ -47,6 +48,20 @@ const menuItems = {
     { icon: '📜', label: 'Order History', path: '/customer/history' },
     { icon: '⚙️', label: 'Profile Settings', path: '/customer/settings' },
   ],
+}
+
+function LogoutButton() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const handle = () => {
+    logout()
+    navigate('/login')
+  }
+  return (
+    <button className="logout-btn" onClick={handle}>
+      Logout
+    </button>
+  )
 }
 
 function Sidebar({ userType, userName, userEmail, userAvatar }: SidebarProps) {
@@ -105,9 +120,7 @@ function Sidebar({ userType, userName, userEmail, userAvatar }: SidebarProps) {
         </div>
       </div>
 
-      <button className="get-template-btn">
-        Get template →
-      </button>
+      <LogoutButton />
     </div>
   )
 }

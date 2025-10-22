@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './NewOrder.css'
+import { getProducts, type Product } from '../../lib/api'
 
 interface OrderItem {
   id: string
@@ -16,38 +17,42 @@ function NewOrder() {
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [notes, setNotes] = useState('')
   const [files, setFiles] = useState<File[]>([])
+  const [products, setProducts] = useState<{ id: string; name: string; price: number }[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
 
-  const products = [
-    { id: 'p1', name: 'Product A', price: 45.99 },
-    { id: 'p2', name: 'Product B', price: 78.50 },
-    { id: 'p3', name: 'Product C', price: 120.00 },
-    { id: 'p4', name: 'Product D', price: 35.25 },
-  ]
+  useEffect(() => {
+    let mounted = true
+    setLoadingProducts(true)
+    getProducts()
+      .then((list: Product[]) => {
+        if (!mounted) return
+        setProducts(list.map(p => ({ id: String(p.product_id), name: p.productName, price: p.unitPrice })))
+      })
+      .finally(() => {
+        if (mounted) setLoadingProducts(false)
+      })
+    return () => {
+      mounted = false
+    }
+  }, [])
 
-  // Calculate minimum delivery date (7 days from now)
-  const getMinDeliveryDate = () => {
+  const minDeliveryDate = useMemo(() => {
     const date = new Date()
     date.setDate(date.getDate() + 7)
     return date.toISOString().split('T')[0]
-  }
+  }, [])
 
   const addItem = () => {
-    setOrderItems([...orderItems, {
-      id: Date.now().toString(),
-      product: '',
-      quantity: 1,
-      price: 0
-    }])
+    if (products.length === 0) return
+    setOrderItems(prev => ([...prev, { id: Date.now().toString(), product: '', quantity: 1, price: 0 }]))
   }
 
   const removeItem = (id: string) => {
-    if (orderItems.length > 1) {
-      setOrderItems(orderItems.filter(item => item.id !== id))
-    }
+    setOrderItems(prev => (prev.length > 1 ? prev.filter(item => item.id !== id) : prev))
   }
 
   const updateItem = (id: string, field: string, value: any) => {
-    setOrderItems(orderItems.map(item => {
+    setOrderItems(prev => prev.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value }
         if (field === 'product') {
@@ -72,12 +77,12 @@ function NewOrder() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!deliveryDate) {
       alert('Please select a delivery date')
       return
     }
-    
+
     if (orderItems.some(item => !item.product)) {
       alert('Please select a product for all items')
       return
@@ -91,7 +96,7 @@ function NewOrder() {
       files,
       total: calculateTotal()
     })
-    
+
     alert('Order placed successfully! Order ID: #' + Math.floor(Math.random() * 10000))
   }
 
@@ -107,28 +112,34 @@ function NewOrder() {
       <form onSubmit={handleSubmit} className="order-form">
         <div className="form-section">
           <h2>Order Items</h2>
-          
+
           <div className="items-list">
             {orderItems.map((item, index) => (
               <div key={item.id} className="order-item">
                 <div className="item-number">{index + 1}</div>
-                
+
                 <div className="item-fields">
                   <div className="form-group">
                     <label>Product</label>
-                    <select
-                      value={item.product}
-                      onChange={(e) => updateItem(item.id, 'product', e.target.value)}
-                      className="input-field"
-                      required
-                    >
-                      <option value="">Select a product</option>
-                      {products.map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} - ${p.price}
-                        </option>
-                      ))}
-                    </select>
+                    {loadingProducts ? (
+                      <div className="field-note">Loading products…</div>
+                    ) : products.length === 0 ? (
+                      <div className="field-note">No products available. Contact support or try later.</div>
+                    ) : (
+                      <select
+                        value={item.product}
+                        onChange={(e) => updateItem(item.id, 'product', e.target.value)}
+                        className="input-field"
+                        required
+                      >
+                        <option value="">Select a product</option>
+                        {products.map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} - ${p.price}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -165,21 +176,21 @@ function NewOrder() {
             ))}
           </div>
 
-          <button type="button" onClick={addItem} className="btn-add-item">
+          <button type="button" onClick={addItem} className="btn-add-item" disabled={products.length === 0}>
             ➕ Add Another Item
           </button>
         </div>
 
         <div className="form-section">
           <h2>Delivery Details</h2>
-          
+
           <div className="form-grid">
             <div className="form-group">
               <label htmlFor="delivery-date">Delivery Date</label>
               <input
                 type="date"
                 id="delivery-date"
-                min={getMinDeliveryDate()}
+                min={minDeliveryDate}
                 value={deliveryDate}
                 onChange={(e) => setDeliveryDate(e.target.value)}
                 className="input-field"
@@ -217,7 +228,7 @@ function NewOrder() {
 
         <div className="form-section">
           <h2>Supporting Documents (Optional)</h2>
-          
+
           <div className="file-upload">
             <label htmlFor="files" className="file-upload-label">
               <div className="upload-icon">📎</div>
@@ -267,8 +278,8 @@ function NewOrder() {
             </div>
           </div>
 
-          <button type="submit" className="btn-submit-order">
-            Place Order →
+          <button type="submit" className="btn-submit-order" disabled={products.length === 0}>
+            {products.length === 0 ? 'No products available' : 'Place Order →'}
           </button>
         </div>
       </form>

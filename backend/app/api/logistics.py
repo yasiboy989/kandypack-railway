@@ -1,17 +1,15 @@
-from fastapi import FastAPI, HTTPException, Query,APIRouter,Path,Body,WebSocketDisconnect,WebSocket
-from app.db.database import get_db_connection
+from fastapi import HTTPException, Query,APIRouter,Path,Body
+from ..db.database import get_db_connection
 from datetime import datetime
 from psycopg2.extras import RealDictCursor
-from typing import List
-import asyncio
 
-router = APIRouter(
+train_trips_router = APIRouter(
     prefix="/train-trips",   # all routes here start with /train-trips
     tags=["Train Trips"]
 )
 
 
-@router.get("/train-trips")
+@train_trips_router.get("/train-trips")
 # def get_train_trips():
 #     conn = get_db_connection()
 #     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -41,7 +39,7 @@ def get_train_trips():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT train_trip_id, departure_city, arrival_city FROM train_trip;")
+        cursor.execute("SELECT train_trip_id, departure_city, arrival_city, departure_date_time, arrival_date_time, total_capacity, available_capacity FROM train_trip;")
         trips = cursor.fetchall()
         return trips
     finally:
@@ -51,7 +49,7 @@ def get_train_trips():
 
 
 
-@router.post("/train-trips/create")
+@train_trips_router.post("/train-trips/create")
 def create_train_trip(
     departure_city: str = Query(...),
     arrival_city: str = Query(...),
@@ -73,101 +71,184 @@ def create_train_trip(
         cursor.close()
         conn.close()        
 
-router.get("/train-schedules")
+@train_trips_router.get("/train-schedules")
 def get_train_schedules():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
-            SELECT ts.train_trip_id, ts.order_id, ts.allocated_space
+            SELECT ts.train_trip_id, ts.train_departure_date_time, ts.order_id, ts.allocated_space, ts.status
             FROM train_schedule ts;
         """)
         return cursor.fetchall()
     finally:
         cursor.close()
-        conn.close()        
-router_truck = APIRouter(
-    prefix="/Trucks",   # all routes here start with /train-trips
-    tags=["Truck"]
-)
-
-@router_truck.get("/trucks")
-def get_trucks():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT truck_id, plate_number FROM truck;")
-        return cursor.fetchall()
-    finally:
-        cursor.close()
         conn.close()
 
-@router_truck.post("/trucks")
-def create_truck(plate_number: str = Query(...), max_load: float = Query(...)):
+@train_trips_router.post("/train-schedules")
+def create_train_schedule(
+    train_trip_id: int = Query(...),
+    train_departure_date_time: datetime = Query(...),
+    order_id: int = Query(...),
+    allocated_space: float = Query(...)
+):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            "INSERT INTO truck(plate_number, max_load) VALUES (%s,%s) RETURNING truck_id, plate_number;",
-            (plate_number, max_load)
-        )
+        cursor.execute("""
+            INSERT INTO train_schedule(train_trip_id, train_departure_date_time, order_id, allocated_space, status)
+            VALUES (%s, %s, %s, %s, 'Allocated')
+            RETURNING train_trip_id, order_id, allocated_space;
+        """, (train_trip_id, train_departure_date_time, order_id, allocated_space))
         conn.commit()
         return cursor.fetchone()
     finally:
         cursor.close()
         conn.close()
 
-router_routes = APIRouter(
-    prefix="/routes",   # all routes here start with /train-trips
-    tags=["Routes"]
-)
-@router_routes.get("/routes")
-def get_routes():
+@train_trips_router.get("/train-to-store")
+def get_train_to_store():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT route_id, start_location, end_location FROM route;")
-        return cursor.fetchall()
-    finally:
-        cursor.close()
-        conn.close()
-router_deleveries = APIRouter(
-    prefix="/deliveries",   
-    tags=["Deleveries"]
-)
-@router_deleveries.get("/deliveries")
-def get_deliveries():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT delivery_id, status FROM delivery;")
+        cursor.execute("""
+            SELECT tts.train_trip_id, tts.train_departure_date_time, tts.store_id, s.city, s.address
+            FROM train_to_store tts
+            JOIN store s ON tts.store_id = s.store_id;
+        """)
         return cursor.fetchall()
     finally:
         cursor.close()
         conn.close()
 
-@router_deleveries.post("/deliveries")
-def create_delivery(
-    truck_id: int = Query(...),
-    route_id: int = Query(...),
-    user_id: int = Query(...),
-    delivery_date_time: datetime = Query(...)
+@train_trips_router.post("/train-to-store")
+def create_train_to_store(
+    train_trip_id: int = Query(...),
+    train_departure_date_time: datetime = Query(...),
+    store_id: int = Query(...)
+):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO train_to_store(train_trip_id, train_departure_date_time, store_id)
+            VALUES (%s, %s, %s)
+            RETURNING train_trip_id, store_id;
+        """, (train_trip_id, train_departure_date_time, store_id))
+        conn.commit()
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()        
+truck_router = APIRouter(
+    prefix="/Trucks",   # all routes here start with /train-trips
+    tags=["Truck"]
+)
+
+@truck_router.get("/trucks")
+def get_trucks():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT truck_id, plate_number, max_load, status FROM truck;")
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+
+@truck_router.post("/trucks")
+def create_truck(
+    plate_number: str = Query(...), 
+    max_load: float = Query(...),
+    status: str = Query("Available"),
+    store_id: int = Query(None)
 ):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            """INSERT INTO delivery(truck_id, route_id, user_id, delivery_date_time)
-               VALUES (%s,%s,%s,%s) RETURNING delivery_id, status;""",
-            (truck_id, route_id, user_id, delivery_date_time)
+            "INSERT INTO truck(plate_number, max_load, status, store_id) VALUES (%s,%s,%s,%s) RETURNING truck_id, plate_number;",
+            (plate_number, max_load, status, store_id)
+        )
+        conn.commit()
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+routes_router = APIRouter(
+    prefix="/routes",   # all routes here start with /train-trips
+    tags=["Routes"]
+)
+
+@routes_router.get("/routes")
+def get_routes():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT route_id, start_location, end_location, max_delivery_time FROM route;")
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+
+@routes_router.post("/routes")
+def create_route(
+    start_location: str = Query(...),
+    end_location: str = Query(...),
+    max_delivery_time: str = Query(...),
+    area_covered_description: str = Query(None)
+):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO route(start_location, end_location, max_delivery_time, area_covered_description) VALUES (%s,%s,%s,%s) RETURNING route_id, start_location, end_location;",
+            (start_location, end_location, max_delivery_time, area_covered_description)
+        )
+        conn.commit()
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+deliveries_router = APIRouter(
+    prefix="/deliveries",   
+    tags=["Deleveries"]
+)
+@deliveries_router.get("/deliveries")
+def get_deliveries():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT delivery_id, truck_id, route_id, delivery_date_time, status FROM delivery;")
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+
+@deliveries_router.post("/deliveries")
+def create_delivery(
+    truck_id: int = Query(...),
+    route_id: int = Query(...),
+    user_id: int = Query(...),
+    delivery_date_time: datetime = Query(...),
+    driver_employee_id: int = Query(None),
+    assistant_employee_id: int = Query(None)
+):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """INSERT INTO delivery(truck_id, route_id, user_id, delivery_date_time, driver_employee_id, assistant_employee_id)
+               VALUES (%s,%s,%s,%s,%s,%s) RETURNING delivery_id, status;""",
+            (truck_id, route_id, user_id, delivery_date_time, driver_employee_id, assistant_employee_id)
         )
         conn.commit()
         return cursor.fetchone()
     finally:
         cursor.close()
         conn.close()        
-@router_deleveries.put("/{delivery_id}/status")
-@router.put("/{delivery_id}/status")
+@deliveries_router.put("/{delivery_id}/status")
 def update_delivery_status(
     delivery_id: int = Path(..., description="ID of the delivery to update"),
     payload: dict = Body(..., example={"status": "In Transit"})
@@ -194,30 +275,30 @@ def update_delivery_status(
         cursor.close()
         conn.close()
 
-router_stores = APIRouter(
+stores_router = APIRouter(
     prefix="/stores",   # all routes here start with /train-trips
     tags=["Stores"]
 )
 
-@router_stores.get("/stores")
+@stores_router.get("/stores")
 def get_stores():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT store_id, city, address FROM store;")
+        cursor.execute("SELECT store_id, city, address, near_station_name FROM store;")
         return cursor.fetchall()
     finally:
         cursor.close()
         conn.close()
 
-@router_stores.post("/stores")
-def create_store(city: str = Query(...), address: str = Query(...)):
+@stores_router.post("/stores")
+def create_store(city: str = Query(...), address: str = Query(...), near_station_name: str = Query(None)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO store(city, address) VALUES (%s,%s) RETURNING store_id, city;",
-            (city, address)
+            "INSERT INTO store(city, address, near_station_name) VALUES (%s,%s,%s) RETURNING store_id, city;",
+            (city, address, near_station_name)
         )
         conn.commit()
         return cursor.fetchone()
@@ -225,26 +306,26 @@ def create_store(city: str = Query(...), address: str = Query(...)):
         cursor.close()
         conn.close()
 
-router_auditlog = APIRouter(
+auditlog_router = APIRouter(
     prefix="/auditlogs",   # all routes here start with /train-trips
     tags=["Auditlogs"]
 )
-@router_auditlog.get("/auditlog")
+@auditlog_router.get("/auditlog")
 def get_auditlog():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT audit_id,table_name,operation FROM audit_log;")
+        cursor.execute("SELECT audit_id, table_name, operation, performed_by, performed_at FROM audit_log;")
         return cursor.fetchall()
     finally:
         cursor.close()
         conn.close()
 
-router_report = APIRouter(
+report_router = APIRouter(
     prefix="/report",   # all routes here start with /train-trips
     tags=["Report"]
 )        
-@router_report.get("/sales")
+@report_router.get("/sales")
 def get_quarterly_sales():
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -276,7 +357,7 @@ def get_quarterly_sales():
         conn.close()
 
 
-@router_report.get("/truck_usage")
+@report_router.get("/truck_usage")
 def get_truck_usage():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -296,7 +377,7 @@ def get_truck_usage():
     finally:
         cursor.close()
         conn.close()
-@router_report.get("/driver-hours")       
+@report_router.get("/driver-hours")       
 def get_driver_hours():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -316,37 +397,3 @@ def get_driver_hours():
     finally:
         cursor.close()
         conn.close()
-
-router_socket = APIRouter(tags=["WebSocket"])
-
-# Active connections
-connections: List[WebSocket] = []
-
-@router_socket.websocket("/ws/notifications")
-async def websocket_notifications(ws: WebSocket):
-    await ws.accept()
-    connections.append(ws)
-    try:
-        while True:
-            data = await ws.receive_text()
-            # optional: handle client messages
-    except:
-        connections.remove(ws)
-
-
-@router_socket.websocket("/ws/live-metrics")
-async def websocket_live_metrics(ws: WebSocket):
-    await ws.accept()
-    try:
-        while True:
-            # Here you would send metrics periodically
-            # Example:
-            import asyncio, datetime
-            await ws.send_json({
-                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
-                "metric": "train_utilization",
-                "value": 0.74
-            })
-            await asyncio.sleep(5)
-    except:
-        pass

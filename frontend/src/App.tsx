@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
+import CustomerLogin from './pages/customer/CustomerLogin'
 import CustomerPortal from './pages/CustomerPortal'
 import AdminPortal from './pages/AdminPortal'
 import ManagerPortal from './pages/ManagerPortal'
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/customer/login" element={<CustomerLogin />} />
         <Route path="/customer/*" element={<CustomerPortal />} />
         <Route path="/admin/*" element={<AdminPortal />} />
         <Route path="/manager/*" element={<ManagerPortal />} />

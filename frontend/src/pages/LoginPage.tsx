@@ -1,30 +1,42 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './LoginPage.css'
+import { useAuth } from '../context/AuthContext'
 
 function LoginPage() {
   const navigate = useNavigate()
-  const [isLogin, setIsLogin] = useState(true)
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
     role: 'driver',
   })
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const roleRoutes: Record<string, string> = {
+    admin: '/admin',
+    manager: '/manager',
+    warehouse: '/warehouse',
+    driver: '/driver',
+    assistant: '/assistant',
+    customer: '/customer',
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would authenticate with backend
-    // For now, we'll navigate based on role
-    const roleRoutes: Record<string, string> = {
-      admin: '/admin',
-      manager: '/manager',
-      warehouse: '/warehouse',
-      driver: '/driver',
-      assistant: '/assistant',
+
+    setSubmitting(true)
+    setError(null)
+    try {
+      const profile = await login(formData.email, formData.password)
+      const roleKey = profile.role?.toLowerCase()
+      navigate(roleRoutes[roleKey] || '/login', { replace: true })
+    } catch (err) {
+      setError('Invalid credentials or server unavailable')
+    } finally {
+      setSubmitting(false)
     }
-    
-    navigate(roleRoutes[formData.role] || '/driver')
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -55,37 +67,7 @@ function LoginPage() {
 
         <div className="login-right">
           <div className="login-form-container">
-            <div className="login-tabs">
-              <button
-                className={`login-tab ${isLogin ? 'active' : ''}`}
-                onClick={() => setIsLogin(true)}
-              >
-                Login
-              </button>
-              <button
-                className={`login-tab ${!isLogin ? 'active' : ''}`}
-                onClick={() => setIsLogin(false)}
-              >
-                Sign Up
-              </button>
-            </div>
-
             <form onSubmit={handleSubmit} className="login-form">
-              {!isLogin && (
-                <div className="form-group">
-                  <label htmlFor="name">Full Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter your full name"
-                    required={!isLogin}
-                    className="input-field"
-                  />
-                </div>
-              )}
 
               <div className="form-group">
                 <label htmlFor="email">Email Address</label>
@@ -132,28 +114,29 @@ function LoginPage() {
                 </select>
               </div>
 
-              <button type="submit" className="btn-submit">
-                {isLogin ? 'Login' : 'Sign Up'} →
+              <button type="submit" className="btn-submit" disabled={submitting}>
+                {submitting ? 'Signing in…' : 'Login'} →
               </button>
 
-              {isLogin && (
-                <div className="forgot-password">
-                  <a href="#">Forgot password?</a>
+              {error && (
+                <div className="forgot-password" style={{ color: 'var(--danger, #d33)' }}>
+                  {error}
                 </div>
               )}
+
+              <div className="forgot-password">
+                <a href="#">Forgot password?</a>
+              </div>
             </form>
 
             <div className="login-footer">
               <p>
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <button onClick={() => setIsLogin(!isLogin)} className="toggle-link">
-                  {isLogin ? 'Sign Up' : 'Login'}
-                </button>
+                Need an account? Please contact your system administrator to create a staff account.
               </p>
             </div>
 
             <div className="customer-link">
-              <p>Looking for customer portal? <a href="/customer">Click here</a></p>
+              <p>Looking for customer portal? <a href="/customer/login">Click here</a></p>
             </div>
           </div>
         </div>

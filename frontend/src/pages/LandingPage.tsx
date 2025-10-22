@@ -26,7 +26,7 @@ function LandingPage() {
               Complete end-to-end logistics solution for train and truck delivery coordination
             </p>
             <div className="hero-actions">
-              <Link to="/customer" className="btn-hero btn-primary-large">
+              <Link to="/customer/login" className="btn-hero btn-primary-large">
                 Access Customer Portal →
               </Link>
               <Link to="/login" className="btn-hero btn-secondary-large">
@@ -80,7 +80,7 @@ function LandingPage() {
               <div className="feature-icon">🛒</div>
               <h3 className="feature-title">Customer Portal</h3>
               <p className="feature-desc">Place orders, track deliveries, and manage account settings</p>
-              <Link to="/customer" className="feature-link">Get Started →</Link>
+              <Link to="/customer/login" className="feature-link">Get Started →</Link>
             </div>
           </div>
         </section>
@@ -90,7 +90,7 @@ function LandingPage() {
             <h2 className="cta-title">Ready to streamline your logistics?</h2>
             <p className="cta-subtitle">Join our platform today and experience efficient delivery management</p>
             <div className="cta-actions">
-              <Link to="/customer" className="btn-primary-large">
+              <Link to="/customer/login" className="btn-primary-large">
                 Customer Portal →
               </Link>
             </div>
