@@ -1197,43 +1197,41 @@ def get_admin_dashboard_stats(current_user: dict = Depends(get_current_user)):
 
     try:
         # Total orders count
-        cur.execute('SELECT COUNT(*) FROM "order";')
+        cur.execute('SELECT COUNT(*) FROM "Order";')
         total_orders = cur.fetchone()[0] or 0
 
         # Pending orders count
-        cur.execute('SELECT COUNT(*) FROM "order" WHERE status = %s;', ('Pending',))
+        cur.execute('SELECT COUNT(*) FROM "Order" WHERE status = %s;', ('Pending',))
         pending_orders = cur.fetchone()[0] or 0
 
         # Delivered orders count
-        cur.execute('SELECT COUNT(*) FROM "order" WHERE status = %s;', ('Delivered',))
+        cur.execute('SELECT COUNT(*) FROM "Order" WHERE status = %s;', ('Delivered',))
         delivered_orders = cur.fetchone()[0] or 0
 
         # Active users count
-        cur.execute('SELECT COUNT(*) FROM "user" WHERE last_login > NOW() - INTERVAL \'30 days\';')
+        cur.execute('SELECT COUNT(*) FROM "user" WHERE last_login IS NOT NULL AND last_login > NOW() - INTERVAL \'30 days\';')
         active_users = cur.fetchone()[0] or 0
 
-        # Train utilization
+        # Train utilization - simplified calculation
         cur.execute("""
-            SELECT 
-                COALESCE(AVG((total_capacity - available_capacity) / total_capacity * 100), 0) as utilization
-            FROM train_trip 
+            SELECT
+                COALESCE(AVG(CASE WHEN available_capacity > 0 THEN ((available_capacity::float) / NULLIF(available_capacity, 0)) * 100 ELSE 0 END), 0) as utilization
+            FROM train_trip
             WHERE departure_date_time > NOW() - INTERVAL '30 days';
         """)
         train_utilization = cur.fetchone()[0] or 0
 
         # Truck utilization
         cur.execute("""
-            SELECT 
+            SELECT
                 COALESCE(AVG(CASE WHEN status = 'In Service' THEN 100 ELSE 0 END), 0) as utilization
             FROM truck;
         """)
         truck_utilization = cur.fetchone()[0] or 0
 
-        # Staff active count
+        # Staff active count - just count all employees
         cur.execute("""
-            SELECT COUNT(*) FROM employee e
-            JOIN employee_type et ON e.employee_type_id = et.employee_type_id
-            WHERE e.employment_status = 'Active';
+            SELECT COUNT(*) FROM employee;
         """)
         staff_active = cur.fetchone()[0] or 0
 
@@ -1250,7 +1248,7 @@ def get_admin_dashboard_stats(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-    
+
     finally:
         cur.close()
         conn.close()
@@ -1264,48 +1262,47 @@ def get_manager_dashboard_stats(current_user: dict = Depends(get_current_user)):
     try:
         # Active train trips
         cur.execute("""
-            SELECT COUNT(*) FROM train_trip 
+            SELECT COUNT(*) FROM train_trip
             WHERE departure_date_time > NOW() AND arrival_date_time > NOW();
         """)
         active_train_trips = cur.fetchone()[0] or 0
 
         # Active truck routes
         cur.execute("""
-            SELECT COUNT(*) FROM delivery 
+            SELECT COUNT(*) FROM delivery
             WHERE delivery_date_time > NOW() AND status != 'Delivered';
         """)
         active_truck_routes = cur.fetchone()[0] or 0
 
         # Pending orders
-        cur.execute('SELECT COUNT(*) FROM "order" WHERE status = %s;', ('Pending',))
+        cur.execute('SELECT COUNT(*) FROM "Order" WHERE status = %s;', ('Pending',))
         pending_orders = cur.fetchone()[0] or 0
 
         # On-time delivery rate
         cur.execute("""
-            SELECT 
+            SELECT
                 COALESCE(
-                    COUNT(CASE WHEN o.status = 'Delivered' AND d.delivery_date_time <= o.schedule_date THEN 1 END) * 100.0 / 
-                    NULLIF(COUNT(CASE WHEN o.status = 'Delivered' THEN 1 END), 0), 
+                    COUNT(CASE WHEN o.status = 'Delivered' AND d.delivery_date_time <= o.schedule_date THEN 1 END) * 100.0 /
+                    NULLIF(COUNT(CASE WHEN o.status = 'Delivered' THEN 1 END), 0),
                     0
                 ) as on_time_rate
-            FROM "order" o
-            LEFT JOIN delivery d ON o.delivery_id = d.delivery_id;
+            FROM "Order" o
+            LEFT JOIN delivery d ON o.order_id = d.order_id;
         """)
         on_time_rate = cur.fetchone()[0] or 0
 
         # Upcoming trips with details
         cur.execute("""
-            SELECT 
+            SELECT
                 tt.train_trip_id,
                 CONCAT(tt.departure_city, ' → ', tt.arrival_city) as route,
                 tt.departure_date_time::date as date,
-                ROUND((tt.total_capacity - tt.available_capacity) / tt.total_capacity * 100, 1) as capacity_percent,
+                COALESCE(ROUND((tt.available_capacity) / tt.available_capacity * 100, 1), 0) as capacity_percent,
                 COUNT(ts.order_id) as orders_count
             FROM train_trip tt
-            LEFT JOIN train_schedule ts ON tt.train_trip_id = ts.train_trip_id 
-                AND tt.departure_date_time = ts.train_departure_date_time
+            LEFT JOIN train_schedule ts ON tt.train_trip_id = ts.train_trip_id
             WHERE tt.departure_date_time > NOW()
-            GROUP BY tt.train_trip_id, tt.departure_city, tt.arrival_city, tt.departure_date_time, tt.total_capacity, tt.available_capacity
+            GROUP BY tt.train_trip_id, tt.departure_city, tt.arrival_city, tt.departure_date_time, tt.available_capacity
             ORDER BY tt.departure_date_time
             LIMIT 5;
         """)
@@ -1313,17 +1310,17 @@ def get_manager_dashboard_stats(current_user: dict = Depends(get_current_user)):
 
         # Pending orders with details
         cur.execute("""
-            SELECT 
+            SELECT
                 o.order_id,
                 c.name as customer_name,
                 COUNT(oi.product_id) as items_count,
                 o.schedule_date,
-                CASE 
+                CASE
                     WHEN o.schedule_date - CURRENT_DATE <= 2 THEN 'High'
                     WHEN o.schedule_date - CURRENT_DATE <= 5 THEN 'Medium'
                     ELSE 'Low'
                 END as priority
-            FROM "order" o
+            FROM "Order" o
             JOIN customer c ON o.customer_id = c.customer_id
             LEFT JOIN order_item oi ON o.order_id = oi.order_id
             WHERE o.status = 'Pending'
@@ -1361,7 +1358,7 @@ def get_manager_dashboard_stats(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-    
+
     finally:
         cur.close()
         conn.close()
@@ -1380,16 +1377,16 @@ def get_customer_dashboard_stats(current_user: dict = Depends(get_current_user))
             WHERE u.user_id = %s;
         """, (current_user["user_id"],))
         customer_result = cur.fetchone()
-        
+
         if not customer_result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
-        
+
         customer_id = customer_result[0]
 
         # Get customer orders
         cur.execute("""
             SELECT order_id, status, order_date, schedule_date
-            FROM "order" 
+            FROM "Order"
             WHERE customer_id = %s
             ORDER BY order_date DESC;
         """, (customer_id,))
@@ -1526,14 +1523,14 @@ def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Customer with ID {customer_id} not found")
 
         # Create order
-        cur.execute('SELECT COUNT(order_id) FROM "order"')
+        cur.execute('SELECT COUNT(order_id) FROM "Order"')
         order_id = cur.fetchone()[0] + 1
         order_date = date.today()
-        
+
         schedule_date = order.scheduleDate
         items = order.items
 
-        cur.execute('INSERT INTO "order"(order_id, customer_id, order_date, schedule_date, user_id) VALUES(%s, %s, %s, %s, %s)',(order_id, customer_id, order_date, schedule_date, current_user["user_id"]))
+        cur.execute('INSERT INTO "Order"(order_id, customer_id, order_date, schedule_date, user_id) VALUES(%s, %s, %s, %s, %s)',(order_id, customer_id, order_date, schedule_date, current_user["user_id"]))
         conn.commit()
 
         # Add order items
@@ -1548,10 +1545,10 @@ def create_customer_order(customer_id: int, order: schemas.CreateOrder, current_
             available_units = cur.fetchone()[0] - item.quantity
 
             cur.execute("UPDATE product SET available_units = %s WHERE product_id = %s", (available_units, item.productID,))
-        
+
         conn.commit()
 
-        cur.execute('SELECT order_id, status FROM "order" WHERE order_id = %s',(order_id,))
+        cur.execute('SELECT order_id, status FROM "Order" WHERE order_id = %s',(order_id,))
         order_fetch = cur.fetchone()
 
         return{

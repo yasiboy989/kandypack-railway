@@ -461,3 +461,126 @@ export async function getDriverHoursReport() {
     return []
   }
 }
+
+// Materialized Views Reports
+export interface TrainCapacityUtilization {
+  train_trip_id: number
+  departure_city: string
+  arrival_city: string
+  departure_date_time: string
+  total_capacity: number
+  available_capacity: number
+  used_capacity: number
+  utilization_percent: number
+  orders_count: number
+}
+
+export async function getTrainCapacityUtilization() {
+  try {
+    return await apiFetch<TrainCapacityUtilization[]>('/report/train-capacity-utilization')
+  } catch (err) {
+    console.warn('getTrainCapacityUtilization failed:', err)
+    return []
+  }
+}
+
+export interface DeliveryPerformance {
+  delivery_id: number
+  delivery_date_time: string
+  status: string
+  schedule_date: string
+  order_id: number
+  customer_name: string
+  performance_status: string
+  hours_delay: number | null
+}
+
+export async function getDeliveryPerformance() {
+  try {
+    return await apiFetch<DeliveryPerformance[]>('/report/delivery-performance')
+  } catch (err) {
+    console.warn('getDeliveryPerformance failed:', err)
+    return []
+  }
+}
+
+export interface EmployeeWorkload {
+  employee_id: number
+  first_name: string
+  last_name: string
+  employee_type: string
+  total_assignments: number
+  total_hours: number
+  avg_hours_per_assignment: number
+  last_assignment: string
+  assignments_this_week: number
+}
+
+export async function getEmployeeWorkload() {
+  try {
+    return await apiFetch<EmployeeWorkload[]>('/report/employee-workload')
+  } catch (err) {
+    console.warn('getEmployeeWorkload failed:', err)
+    return []
+  }
+}
+
+export interface RevenueAnalysis {
+  month: string
+  quarter: string
+  year: number
+  customer_type: string
+  order_count: number
+  total_revenue: number
+  avg_order_value: number
+  unique_customers: number
+}
+
+export async function getRevenueAnalysis() {
+  try {
+    return await apiFetch<RevenueAnalysis[]>('/report/revenue-analysis')
+  } catch (err) {
+    console.warn('getRevenueAnalysis failed:', err)
+    return []
+  }
+}
+
+export interface ProductPerformance {
+  product_id: number
+  product_name: string
+  category: string
+  unit_price: number
+  total_quantity_sold: number
+  total_revenue: number
+  order_count: number
+  avg_quantity_per_order: number
+  current_stock: number
+  stock_status: string
+}
+
+export async function getProductPerformance() {
+  try {
+    return await apiFetch<ProductPerformance[]>('/report/product-performance')
+  } catch (err) {
+    console.warn('getProductPerformance failed:', err)
+    return []
+  }
+}
+
+export interface InventoryAlert {
+  product_id: number
+  product_name: string
+  available_units: number
+  category: string
+  alert_level: string
+  suggested_reorder_point: number
+}
+
+export async function getInventoryAlerts() {
+  try {
+    return await apiFetch<InventoryAlert[]>('/report/inventory-alerts')
+  } catch (err) {
+    console.warn('getInventoryAlerts failed:', err)
+    return []
+  }
+}

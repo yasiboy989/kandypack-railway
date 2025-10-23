@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Query,APIRouter,Path,Body, Depends
+from fastapi import HTTPException, Query, APIRouter, Path, Body, Depends
 from ..db.database import get_db_connection
 from datetime import datetime
 from psycopg2.extras import RealDictCursor
@@ -448,10 +448,10 @@ def create_store(city: str = Query(...), address: str = Query(...), near_station
         conn.close()
 
 auditlog_router = APIRouter(
-    prefix="/auditlogs",   # all routes here start with /train-trips
+    prefix="/auditlog",
     tags=["Auditlogs"]
 )
-@auditlog_router.get("/auditlog")
+@auditlog_router.get("")
 def get_auditlog():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -518,7 +518,7 @@ def get_truck_usage():
     finally:
         cursor.close()
         conn.close()
-@report_router.get("/driver-hours")       
+@report_router.get("/driver-hours")
 def get_driver_hours():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -535,6 +535,158 @@ def get_driver_hours():
         result = cursor.fetchall()
         # Access dict keys
         return [{"employeeId": r["employee_id"], "totalHours": float(r["total_hours"])} for r in result]
+    finally:
+        cursor.close()
+        conn.close()
+
+@report_router.get("/train-capacity-utilization")
+def get_train_capacity_utilization(current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                train_trip_id,
+                departure_city,
+                arrival_city,
+                departure_date_time,
+                total_capacity,
+                available_capacity,
+                used_capacity,
+                utilization_percent,
+                orders_count
+            FROM train_capacity_utilization
+            ORDER BY departure_date_time DESC
+            LIMIT 100;
+        """)
+        results = cursor.fetchall()
+        return [dict(r) for r in results]
+    finally:
+        cursor.close()
+        conn.close()
+
+@report_router.get("/delivery-performance")
+def get_delivery_performance(current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                delivery_id,
+                delivery_date_time,
+                status,
+                schedule_date,
+                order_id,
+                customer_name,
+                performance_status,
+                hours_delay
+            FROM delivery_performance
+            ORDER BY delivery_date_time DESC
+            LIMIT 100;
+        """)
+        results = cursor.fetchall()
+        return [dict(r) for r in results]
+    finally:
+        cursor.close()
+        conn.close()
+
+@report_router.get("/employee-workload")
+def get_employee_workload(current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                employee_id,
+                first_name,
+                last_name,
+                employee_type,
+                total_assignments,
+                total_hours,
+                avg_hours_per_assignment,
+                last_assignment,
+                assignments_this_week
+            FROM employee_workload
+            ORDER BY total_hours DESC
+            LIMIT 100;
+        """)
+        results = cursor.fetchall()
+        return [dict(r) for r in results]
+    finally:
+        cursor.close()
+        conn.close()
+
+@report_router.get("/revenue-analysis")
+def get_revenue_analysis(current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                month,
+                quarter,
+                year,
+                customer_type,
+                order_count,
+                total_revenue,
+                avg_order_value,
+                unique_customers
+            FROM revenue_analysis
+            ORDER BY year DESC, quarter DESC
+            LIMIT 100;
+        """)
+        results = cursor.fetchall()
+        return [dict(r) for r in results]
+    finally:
+        cursor.close()
+        conn.close()
+
+@report_router.get("/product-performance")
+def get_product_performance(current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                product_id,
+                product_name,
+                category,
+                unit_price,
+                total_quantity_sold,
+                total_revenue,
+                order_count,
+                avg_quantity_per_order,
+                current_stock,
+                stock_status
+            FROM product_performance
+            ORDER BY total_revenue DESC
+            LIMIT 100;
+        """)
+        results = cursor.fetchall()
+        return [dict(r) for r in results]
+    finally:
+        cursor.close()
+        conn.close()
+
+@report_router.get("/inventory-alerts")
+def get_inventory_alerts(current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                product_id,
+                product_name,
+                available_units,
+                category,
+                alert_level,
+                suggested_reorder_point
+            FROM inventory_alerts
+            ORDER BY alert_level DESC, available_units ASC
+            LIMIT 100;
+        """)
+        results = cursor.fetchall()
+        return [dict(r) for r in results]
     finally:
         cursor.close()
         conn.close()
