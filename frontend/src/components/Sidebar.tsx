@@ -42,6 +42,10 @@ const menuItems = {
   ],
   warehouse: [
     { icon: DashboardIcon, label: 'Dashboard', path: '/warehouse' },
+    { icon: PackageIcon, label: 'Inventory Management', path: '/warehouse/inventory' },
+    { icon: ReportsIcon, label: 'Stock Reports', path: '/warehouse/reports' },
+    { icon: DeliveryIcon, label: 'Store Stock View', path: '/warehouse/store-stock' },
+    { icon: NotificationIcon, label: 'Stock Alerts', path: '/warehouse/alerts' },
   ],
   assistant: [
     { icon: AssignmentsIcon, label: 'My Assignments', path: '/assistant/assignments' },
@@ -118,7 +122,6 @@ function Sidebar({ userType, userName, userEmail, userAvatar }: SidebarProps) {
           )}
         </div>
         <div className="user-info">
-          <div className="user-name">{userName}</div>
           <div className="user-email">{userEmail}</div>
         </div>
       </div>

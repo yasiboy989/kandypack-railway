@@ -28,8 +28,20 @@ function LoginPage() {
     setError(null)
     try {
       const profile = await login(formData.username, formData.password)
-      const roleKey = profile.role?.toLowerCase()
-      navigate(roleRoutes[roleKey] || '/login', { replace: true })
+      const roleLower = profile.role?.toLowerCase() || ''
+
+      // Find matching route by checking if role contains any of the route keys
+      // Sort by key length (longest first) to match more specific roles first
+      let route = '/login'
+      const sortedEntries = Object.entries(roleRoutes).sort((a, b) => b[0].length - a[0].length)
+      for (const [key, value] of sortedEntries) {
+        if (roleLower.includes(key)) {
+          route = value
+          break
+        }
+      }
+
+      navigate(route, { replace: true })
     } catch (err) {
       setError('Invalid credentials or server unavailable')
     } finally {

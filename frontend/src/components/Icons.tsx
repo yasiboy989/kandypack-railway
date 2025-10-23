@@ -442,3 +442,156 @@ export function DocumentIcon({ size = 20, className = '' }: IconProps) {
     </svg>
   )
 }
+
+export function AlertTriangleIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <path d="M12 2L2 20H22L12 2Z" fill="url(#gradient)" opacity="0.8" />
+      <circle cx="12" cy="17" r="1" fill="white" />
+      <path d="M12 8V15" stroke="white" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
+export function AlertCircleIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <circle cx="12" cy="12" r="10" fill="url(#gradient)" opacity="0.8" />
+      <circle cx="12" cy="17" r="1" fill="white" />
+      <path d="M12 8V15" stroke="white" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
+export function CheckCircleIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <circle cx="12" cy="12" r="10" fill="url(#gradient)" opacity="0.8" />
+      <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export function BoxesIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="3" width="7" height="7" rx="1" fill="url(#gradient)" opacity="0.9" />
+      <rect x="2" y="13" width="7" height="7" rx="1" fill="url(#gradient)" opacity="0.7" />
+      <rect x="15" y="3" width="7" height="7" rx="1" fill="url(#gradient)" opacity="0.7" />
+      <rect x="15" y="13" width="7" height="7" rx="1" fill="url(#gradient)" opacity="0.5" />
+    </svg>
+  )
+}
+
+export function TrendingDownIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <path d="M3 7L9 1L15 7L21 1" stroke="url(#gradient)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 18L21 15L21 21L15 21" stroke="url(#gradient)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export function SaveIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" fill="url(#gradient)" opacity="0.8" />
+      <path d="M17 3V7H7V3M7 13L10 16L15 11" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function XIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <path d="M18 6L6 18M6 6L18 18" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export function DownloadIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7 10L12 15L17 10M12 15V3" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export function SearchIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <circle cx="11" cy="11" r="8" fill="none" stroke="url(#gradient)" strokeWidth="2" />
+      <path d="M21 21L16 16" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function EditIcon({ size = 20, className = '' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#CB3CFF" />
+          <stop offset="100%" stopColor="#7F25FB" />
+        </linearGradient>
+      </defs>
+      <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="url(#gradient)" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.89453 20 1.89453C20.5626 1.89453 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1055 3.43739 22.1055 4C22.1055 4.56261 21.8978 5.10217 21.5 5.5L11 16H8V13L18.5 2.5Z" fill="url(#gradient)" opacity="0.8" />
+    </svg>
+  )
+}

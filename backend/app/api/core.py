@@ -133,7 +133,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         conn.close()
 
 @auth_router.post("/auth/register_public_customer")
-def register_public_customer(payload: dict):
+def register_public_customer(payload: schemas.PublicCustomerRegister):
     """Public registration endpoint for customer accounts only.
 
     Fixes applied:
@@ -142,14 +142,14 @@ def register_public_customer(payload: dict):
       (avoids race conditions and is compatible with SERIAL/SEQUENCE primary keys).
     - Return clear error details for conflicts.
     """
-    username = payload.get('username')
-    password = payload.get('password')
-    email = payload.get('email')
-    name = payload.get('name')
-    contact = payload.get('contactNumber')
-    address = payload.get('address')
-    city = payload.get('city')
-    cust_type = payload.get('type', 'Retail')
+    username = payload.username
+    password = payload.password
+    email = payload.email
+    name = payload.name
+    contact = payload.contactNumber
+    address = payload.address
+    city = payload.city
+    cust_type = payload.type
 
     if not username or not password or not email or not name:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="username, password, email and name are required")
@@ -1346,7 +1346,7 @@ def get_manager_dashboard_stats(current_user: dict = Depends(get_current_user)):
     try:
         # Active train trips
         cur.execute("""
-            SELECT COUNT(*) FROM train_trip
+            SELECT COUNT(*) as count FROM train_trip
             WHERE departure_date_time > NOW() AND arrival_date_time > NOW();
         """)
         result = cur.fetchone()
@@ -1354,27 +1354,27 @@ def get_manager_dashboard_stats(current_user: dict = Depends(get_current_user)):
 
         # Active truck routes
         cur.execute("""
-            SELECT COUNT(*) FROM delivery
+            SELECT COUNT(*) as count FROM delivery
             WHERE delivery_date_time > NOW() AND status != 'Delivered';
         """)
         result = cur.fetchone()
         active_truck_routes = (result['count'] if isinstance(result, dict) else result[0]) or 0
 
         # Pending orders
-        cur.execute('SELECT COUNT(*) FROM "order" WHERE status = %s;', ('Pending',))
+        cur.execute('SELECT COUNT(*) as count FROM "order" WHERE status = %s;', ('Pending',))
         result = cur.fetchone()
         pending_orders = (result['count'] if isinstance(result, dict) else result[0]) or 0
 
-        # On-time delivery rate
+        # On-time delivery rate - based on delivered orders
         cur.execute("""
             SELECT
                 COALESCE(
-                    COUNT(CASE WHEN o.status = 'Delivered' AND d.delivery_date_time <= o.schedule_date THEN 1 END) * 100.0 /
-                    NULLIF(COUNT(CASE WHEN o.status = 'Delivered' THEN 1 END), 0),
+                    COUNT(CASE WHEN status = 'Delivered' THEN 1 END) * 100.0 /
+                    NULLIF(COUNT(*), 0),
                     0
                 ) as on_time_rate
-            FROM "order" o
-            LEFT JOIN delivery d ON o.order_id = d.order_id;
+            FROM "order"
+            WHERE status = 'Delivered';
         """)
         result = cur.fetchone()
         on_time_rate = (result['on_time_rate'] if isinstance(result, dict) else result[0]) or 0
@@ -1385,12 +1385,12 @@ def get_manager_dashboard_stats(current_user: dict = Depends(get_current_user)):
                 tt.train_trip_id,
                 CONCAT(tt.departure_city, ' → ', tt.arrival_city) as route,
                 tt.departure_date_time::date as date,
-                COALESCE(ROUND((tt.available_capacity) / tt.available_capacity * 100, 1), 0) as capacity_percent,
+                COALESCE(ROUND((tt.total_capacity - tt.available_capacity) * 100.0 / tt.total_capacity, 1), 0) as capacity_percent,
                 COUNT(ts.order_id) as orders_count
             FROM train_trip tt
             LEFT JOIN train_schedule ts ON tt.train_trip_id = ts.train_trip_id
             WHERE tt.departure_date_time > NOW()
-            GROUP BY tt.train_trip_id, tt.departure_city, tt.arrival_city, tt.departure_date_time, tt.available_capacity
+            GROUP BY tt.train_trip_id, tt.departure_city, tt.arrival_city, tt.departure_date_time, tt.total_capacity, tt.available_capacity
             ORDER BY tt.departure_date_time
             LIMIT 5;
         """)
@@ -1804,12 +1804,12 @@ def update_order_status(order_id: int, status_update: dict, current_user: dict =
 
         cur.execute('UPDATE "order" SET status = %s WHERE order_id = %s RETURNING order_id, status;', (new_status, order_id))
         updated = cur.fetchone()
-        
+
         if not updated:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-        
+
         conn.commit()
-        
+
         return {
             "order_id": updated[0],
             "status": updated[1]
@@ -1818,7 +1818,203 @@ def update_order_status(order_id: int, status_update: dict, current_user: dict =
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-    
+
+    finally:
+        cur.close()
+        conn.close()
+
+@dashboard_router.get("/dashboard/warehouse-manager-stats")
+def get_warehouse_manager_stats(current_user: dict = Depends(get_current_user)):
+    """Get statistics for warehouse manager dashboard"""
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        # Total products in stock
+        cur.execute('SELECT COUNT(*) as count FROM product;')
+        result = cur.fetchone()
+        total_products = (result['count'] if isinstance(result, dict) else result[0]) or 0
+
+        # Total units available
+        cur.execute('SELECT COALESCE(SUM(available_units), 0) as total FROM product;')
+        result = cur.fetchone()
+        total_units = int((result['total'] if isinstance(result, dict) else result[0]) or 0)
+
+        # Low stock items (below threshold - using 50 as default threshold)
+        cur.execute("""
+            SELECT COUNT(*) as count FROM product
+            WHERE available_units < 50;
+        """)
+        result = cur.fetchone()
+        low_stock_items = (result['count'] if isinstance(result, dict) else result[0]) or 0
+
+        # Recent stock updates (last 5 changes) - simplified version
+        cur.execute("""
+            SELECT
+                product_id,
+                product_name,
+                available_units,
+                category,
+                TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as last_updated
+            FROM product
+            ORDER BY product_id DESC
+            LIMIT 5;
+        """)
+        recent_updates = cur.fetchall()
+
+        # Stock distribution by category
+        cur.execute("""
+            SELECT
+                category,
+                COUNT(*) as product_count,
+                COALESCE(SUM(available_units), 0) as total_units
+            FROM product
+            GROUP BY category
+            ORDER BY total_units DESC;
+        """)
+        category_distribution = cur.fetchall()
+
+        # Stock trend - received vs issued (using order data)
+        cur.execute("""
+            SELECT
+                TO_CHAR(o.order_date, 'YYYY-MM-DD') as date,
+                COALESCE(SUM(oi.quantity), 0) as issued_units
+            FROM "order" o
+            LEFT JOIN order_item oi ON o.order_id = oi.order_id
+            WHERE o.order_date >= NOW() - INTERVAL '30 days'
+            GROUP BY TO_CHAR(o.order_date, 'YYYY-MM-DD')
+            ORDER BY date DESC;
+        """)
+        stock_trend = cur.fetchall()
+
+        return {
+            "total_products": int(total_products),
+            "total_units": total_units,
+            "low_stock_items": int(low_stock_items),
+            "recent_updates": [
+                {
+                    "product_id": update[0] if isinstance(update, tuple) else update['product_id'],
+                    "product_name": update[1] if isinstance(update, tuple) else update['product_name'],
+                    "available_units": int(update[2] if isinstance(update, tuple) else update['available_units']),
+                    "category": update[3] if isinstance(update, tuple) else update['category'],
+                    "last_updated": str(update[4] if isinstance(update, tuple) else update['last_updated'])
+                } for update in recent_updates
+            ],
+            "category_distribution": [
+                {
+                    "category": dist[0] if isinstance(dist, tuple) else dist['category'],
+                    "product_count": int(dist[1] if isinstance(dist, tuple) else dist['product_count']),
+                    "total_units": int(dist[2] if isinstance(dist, tuple) else dist['total_units'])
+                } for dist in category_distribution
+            ],
+            "stock_trend": [
+                {
+                    "date": trend[0] if isinstance(trend, tuple) else trend['date'],
+                    "issued_units": int(trend[1] if isinstance(trend, tuple) else trend['issued_units'])
+                } for trend in stock_trend
+            ]
+        }
+
+    except Exception as e:
+        conn.rollback()
+        import traceback
+        print(f"Warehouse stats error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    finally:
+        cur.close()
+        conn.close()
+
+@products_router.get("/products/{product_id}")
+def get_product(product_id: int, current_user: dict = Depends(get_current_user)):
+    """Get detailed product information"""
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            SELECT
+                product_id, product_name, category, unit_price, unit_weight,
+                train_space_per_unit, available_units
+            FROM product
+            WHERE product_id = %s;
+        """, (product_id,))
+
+        product = cur.fetchone()
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+        return {
+            "product_id": product[0] if isinstance(product, tuple) else product['product_id'],
+            "product_name": product[1] if isinstance(product, tuple) else product['product_name'],
+            "category": product[2] if isinstance(product, tuple) else product['category'],
+            "unit_price": float(product[3] if isinstance(product, tuple) else product['unit_price']),
+            "unit_weight": float(product[4] if isinstance(product, tuple) else product['unit_weight']),
+            "train_space_per_unit": float(product[5] if isinstance(product, tuple) else product['train_space_per_unit']),
+            "available_units": int(product[6] if isinstance(product, tuple) else product['available_units'])
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    finally:
+        cur.close()
+        conn.close()
+
+@products_router.put("/products/{product_id}")
+def update_product(product_id: int, update_data: dict, current_user: dict = Depends(get_current_user)):
+    """Update product information (e.g., stock units)"""
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        # Extract fields to update
+        available_units = update_data.get("available_units")
+        unit_price = update_data.get("unit_price")
+
+        if available_units is not None:
+            cur.execute(
+                'UPDATE product SET available_units = %s WHERE product_id = %s;',
+                (available_units, product_id)
+            )
+
+        if unit_price is not None:
+            cur.execute(
+                'UPDATE product SET unit_price = %s WHERE product_id = %s;',
+                (unit_price, product_id)
+            )
+
+        conn.commit()
+
+        # Fetch and return updated product
+        cur.execute("""
+            SELECT
+                product_id, product_name, category, unit_price, unit_weight,
+                train_space_per_unit, available_units
+            FROM product
+            WHERE product_id = %s;
+        """, (product_id,))
+
+        product = cur.fetchone()
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+        return {
+            "product_id": product[0] if isinstance(product, tuple) else product['product_id'],
+            "product_name": product[1] if isinstance(product, tuple) else product['product_name'],
+            "category": product[2] if isinstance(product, tuple) else product['category'],
+            "unit_price": float(product[3] if isinstance(product, tuple) else product['unit_price']),
+            "unit_weight": float(product[4] if isinstance(product, tuple) else product['unit_weight']),
+            "train_space_per_unit": float(product[5] if isinstance(product, tuple) else product['train_space_per_unit']),
+            "available_units": int(product[6] if isinstance(product, tuple) else product['available_units'])
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
     finally:
         cur.close()
         conn.close()

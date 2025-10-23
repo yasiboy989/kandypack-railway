@@ -396,14 +396,31 @@ function NotificationsTab() {
 
 
 function AssistantPortal() {
+  const { user, loading } = useAuth()
+
+  if (loading) return <div style={{ padding: 24 }}>Loading…</div>
+
+  // If not authenticated, redirect to login
+  if (!user) return <Navigate to="/login" replace />
+
+  const roleLower = (user.role || '').toLowerCase()
+  // Allow assistant-related roles (assistant, driver, etc.)
+  if (!roleLower.includes('assistant') && !roleLower.includes('driver')) {
+    // If authenticated but not an assistant/driver, redirect to appropriate portal
+    return <Navigate to="/login" replace />
+  }
+
   return (
     <PortalLayout
       userType="assistant"
-      userName="Driver Assistant"
-      userEmail="assistant@kandypack.com"
+      userName={user.user_name}
+      userEmail={user.email}
     >
       <Routes>
-        <Route path="/" element={<DriverAssistantDashboard />} />
+        <Route path="/" element={<MyAssignmentsTab />} />
+        <Route path="/assignments" element={<MyAssignmentsTab />} />
+        <Route path="/confirmation" element={<DeliveryConfirmationTab />} />
+        <Route path="/notifications" element={<NotificationsTab />} />
         <Route path="*" element={<Navigate to="/assistant" replace />} />
       </Routes>
     </PortalLayout>

@@ -1,0 +1,398 @@
+.reports-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.reports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--neutral-100);
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--neutral-400);
+  margin: 8px 0 0 0;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: #2563eb;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-alert {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.tabs-container {
+  background: var(--secondary-color-1);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tabs-header {
+  display: flex;
+  border-bottom: 2px solid var(--secondary-color-4);
+  background: var(--neutral-700);
+}
+
+.tab {
+  flex: 1;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-400);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tab:hover {
+  color: var(--neutral-100);
+}
+
+.tab.active {
+  color: var(--primary-color, #3b82f6);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary-color, #3b82f6);
+}
+
+.tab-content {
+  padding: 24px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.report-table thead {
+  background: var(--neutral-700);
+}
+
+.report-table th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--neutral-400);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--secondary-color-4);
+}
+
+.report-table tbody tr {
+  border-bottom: 1px solid var(--secondary-color-4);
+  transition: background 0.2s ease;
+}
+
+.report-table tbody tr:hover {
+  background: var(--neutral-700);
+}
+
+.report-row.out-of-stock {
+  background: #fef2f2;
+}
+
+.report-row.low {
+  background: #fffbeb;
+}
+
+.report-table td {
+  padding: 16px;
+  color: var(--neutral-400);
+}
+
+.product-col {
+  font-weight: 600;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-name {
+  color: var(--neutral-100);
+  font-weight: 600;
+}
+
+.stock-col,
+.price-col,
+.value-col,
+.center-col {
+  text-align: center;
+}
+
+.stock-value {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.stock-value.out-of-stock {
+  color: #dc2626;
+}
+
+.stock-value.low {
+  color: #f59e0b;
+}
+
+.stock-value.healthy {
+  color: #10b981;
+}
+
+.price-col {
+  color: var(--primary-color, #3b82f6);
+  font-weight: 600;
+}
+
+.value-col {
+  color: var(--primary-color, #3b82f6);
+  font-weight: 600;
+}
+
+.status-col {
+  text-align: center;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.out-of-stock {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.low {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.healthy {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.alerts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.alert-card {
+  border-left: 4px solid;
+  background: var(--secondary-color-1);
+  border: 1px solid var(--secondary-color-4);
+  border-left: 4px solid;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.alert-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.alert-card.critical {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+}
+
+.alert-card.warning {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.alert-icon {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(220, 38, 38, 0.1);
+  border-radius: 8px;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.alert-card.warning .alert-icon {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--neutral-100);
+}
+
+.alert-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.detail-row .label {
+  color: var(--neutral-400);
+  font-weight: 500;
+}
+
+.detail-row .value {
+  font-weight: 600;
+  color: var(--neutral-100);
+}
+
+.detail-row .value.critical {
+  color: #dc2626;
+}
+
+.detail-row .value.warning {
+  color: #f59e0b;
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.level-badge.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.level-badge.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--neutral-400);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin: 0;
+  color: var(--neutral-400);
+}
+
+@media (max-width: 768px) {
+  .reports-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .export-btn {
+    width: 100%;
+  }
+
+  .tab-content {
+    padding: 16px;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+
+  .report-table th {
+    font-size: 11px;
+  }
+
+  .alerts-list {
+    grid-template-columns: 1fr;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+}

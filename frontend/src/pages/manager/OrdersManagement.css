@@ -1,0 +1,138 @@
+.manager-orders-page {
+  width: 100%;
+}
+
+.manager-orders-page .page-title {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: var(--neutral-100);
+}
+
+.manager-orders-page .page-subtitle {
+  color: var(--neutral-400);
+  margin-bottom: 22px;
+}
+
+.orders-content {
+  display: block;
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+}
+
+.orders-list {
+  background: var(--secondary-color-1);
+  border-radius: 12px;
+  padding: 18px;
+  border: 0.6px solid var(--secondary-color-1);
+  box-shadow: 0 8px 28px rgba(1,5,17,0.30);
+}
+
+.orders-list .muted {
+  color: var(--neutral-400);
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  color: var(--neutral-100);
+  border: 0.6px solid rgba(255,255,255,0.02);
+  cursor: pointer;
+  text-align: left;
+}
+
+.order-item:hover {
+  background: var(--neutral-700);
+}
+
+.order-item.active {
+  background: linear-gradient(128deg, rgba(203,60,255,0.12), rgba(127,37,251,0.08));
+  border: 0.6px solid rgba(203,60,255,0.18);
+  box-shadow: 0 6px 18px rgba(11,17,57,0.35);
+}
+
+.order-status {
+  color: var(--neutral-300);
+  font-size: 13px;
+}
+
+.order-details {
+  background: var(--secondary-color-1);
+  border-radius: 12px;
+  padding: 18px;
+  border: 0.6px solid var(--secondary-color-1);
+  box-shadow: 0 8px 28px rgba(1,5,17,0.30);
+  min-height: 220px;
+}
+
+.inline-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--neutral-400);
+}
+
+.inline-hint svg {
+  color: var(--primary-color-1);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.detail-label {
+  color: var(--neutral-300);
+}
+
+.actions-bar {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.section-heading {
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: var(--neutral-100);
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--neutral-100);
+}
+
+.items-table th,
+.items-table td {
+  text-align: left;
+  padding: 8px 6px;
+  color: var(--neutral-300);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--red-300);
+  border: 0.6px solid rgba(255,90,101,0.08);
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.muted {
+  color: var(--neutral-400);
+}
+
+@media (max-width: 768px) {
+  .orders-grid { grid-template-columns: 1fr; }
+}

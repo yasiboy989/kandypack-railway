@@ -254,3 +254,13 @@ class OrderDetails(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: str
+
+class PublicCustomerRegister(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    name: str
+    contactNumber: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    type: Optional[str] = "Retail"
