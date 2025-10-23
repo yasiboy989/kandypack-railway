@@ -1,0 +1,44 @@
+.portal-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--neutral-800);
+}
+
+.portal-content {
+  flex: 1;
+  margin-left: 300px;
+  padding: 40px;
+  min-height: 100vh;
+}
+
+.portal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.page-title {
+  color: var(--neutral-100);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal-main {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .portal-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
