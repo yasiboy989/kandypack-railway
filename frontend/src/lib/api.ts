@@ -126,6 +126,8 @@ export interface UserProfile {
   user_name: string
   email: string
   role: string
+  // Optional: some views (e.g., assistant) expect this; backend profile may omit it
+  employee_id?: number
 }
 
 export async function loginWithPassword(username: string, password: string) {
@@ -324,9 +326,14 @@ export interface CreateOrderRequest {
   }>
 }
 
-export async function createCustomerOrder(customerId: number, order: CreateOrderRequest) {
+export interface CreateOrderResponse {
+  order_id: number
+  status: string
+}
+
+export async function createCustomerOrder(customerId: number, order: CreateOrderRequest): Promise<CreateOrderResponse> {
   try {
-    return await apiFetch(`/customers/${customerId}/orders`, { 
+    return await apiFetch<CreateOrderResponse>(`/customers/${customerId}/orders`, { 
       method: 'POST', 
       body: order 
     })

@@ -5,7 +5,6 @@ import {
   ReportsIcon,
   PackageIcon,
   TruckIcon,
-  CheckIcon,
   ShoppingIcon,
 } from '../components/Icons'
 

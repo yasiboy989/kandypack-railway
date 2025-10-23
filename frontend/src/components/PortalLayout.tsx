@@ -1,10 +1,10 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import './PortalLayout.css'
 
 interface PortalLayoutProps {
   children: ReactNode
-  userType: 'admin' | 'manager' | 'warehouse' | 'assistant' | 'customer'
+  userType: 'admin' | 'manager' | 'warehouse' | 'assistant' | 'customer' | 'driver'
   userName: string
   userEmail: string
   userAvatar?: string
