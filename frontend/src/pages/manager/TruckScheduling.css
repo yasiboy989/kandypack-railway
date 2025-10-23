@@ -1,0 +1,99 @@
+.manager-truck-page {
+  width: 100%;
+}
+
+.manager-truck-page .page-title {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: var(--neutral-100);
+}
+
+.manager-truck-page .page-subtitle {
+  color: var(--neutral-400);
+  margin-bottom: 22px;
+}
+
+.truck-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  border-radius: 12px;
+  background: var(--secondary-color-1);
+  border: 0.6px solid var(--secondary-color-1);
+  box-shadow: 0 8px 28px rgba(1, 5, 17, 0.30);
+  padding: 22px;
+}
+
+.panel-title {
+  font-size: 18px;
+  color: var(--neutral-100);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-field {
+  flex: 1;
+}
+
+.control {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 0.6px solid var(--secondary-color-4);
+  background: var(--secondary-color-1);
+  color: var(--neutral-100);
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 2px 4px rgba(1,5,17,0.20);
+}
+
+.control:focus {
+  border-color: var(--primary-color-1);
+}
+
+.submit-row {
+  margin-top: 12px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list-item {
+  background: var(--neutral-700);
+  border-radius: 10px;
+  padding: 14px;
+  color: var(--neutral-100);
+  box-shadow: 0 4px 12px rgba(1,5,17,0.20);
+}
+
+.subtext {
+  color: var(--neutral-400);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Keep responsive behavior consistent with portal */
+@media (max-width: 768px) {
+  .truck-layout {
+    grid-template-columns: 1fr;
+  }
+}

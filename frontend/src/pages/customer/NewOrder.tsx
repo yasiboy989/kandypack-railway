@@ -96,6 +96,10 @@ function NewOrder() {
       alert('Please log in to place an order')
       return
     }
+    if (!user.customer_id) {
+      alert('Your account is not linked to a customer profile. Please contact support.')
+      return
+    }
 
     setSubmitting(true)
 
@@ -108,12 +112,10 @@ function NewOrder() {
         }))
       }
 
-      // For now, we'll use a placeholder customer ID since we need to get it from the user
-      // In a real implementation, you'd get the customer ID from the user's profile
-      const customerId = 1 // This should be retrieved from user context
-      
-      const result = await createCustomerOrder(customerId, orderData)
-      
+      const customerId = user.customer_id
+
+      const result = await createCustomerOrder(customerId!, orderData)
+
       console.log('Order submitted successfully:', result)
       alert(`Order placed successfully! Order ID: #${result.order_id}`)
       

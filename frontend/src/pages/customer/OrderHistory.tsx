@@ -1,65 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './OrderHistory.css'
 import { PackageIcon } from '../../components/Icons'
+import { getCustomerDashboardStats, type CustomerDashboardStats } from '../../lib/api'
+
+interface Order {
+  order_id: number
+  status: string
+  order_date: string
+  delivery_date: string
+}
 
 function OrderHistory() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const orders = [
-    {
-      id: '#1535',
-      date: '2024-12-28',
-      deliveryDate: '2025-01-05',
-      status: 'In Transit',
-      items: 5,
-      total: '$245.80',
-    },
-    {
-      id: '#1534',
-      date: '2024-12-25',
-      deliveryDate: '2025-01-02',
-      status: 'Scheduled',
-      items: 3,
-      total: '$156.40',
-    },
-    {
-      id: '#1533',
-      date: '2024-12-20',
-      deliveryDate: '2024-12-28',
-      status: 'Delivered',
-      items: 7,
-      total: '$389.50',
-    },
-    {
-      id: '#1532',
-      date: '2024-12-15',
-      deliveryDate: '2024-12-23',
-      status: 'Delivered',
-      items: 4,
-      total: '$198.25',
-    },
-    {
-      id: '#1531',
-      date: '2024-12-10',
-      deliveryDate: '2024-12-18',
-      status: 'Delivered',
-      items: 6,
-      total: '$412.90',
-    },
-    {
-      id: '#1530',
-      date: '2024-12-05',
-      deliveryDate: '2024-12-13',
-      status: 'Delivered',
-      items: 2,
-      total: '$89.40',
-    },
-  ]
+  useEffect(() => {
+    let mounted = true
+    getCustomerDashboardStats()
+      .then((data: CustomerDashboardStats) => {
+        if (!mounted) return
+        setOrders(data.recent_orders)
+      })
+      .catch((err) => {
+        console.error('Failed to load orders:', err)
+        if (mounted) setOrders([])
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const statusOptions = [
     { value: 'all', label: 'All Orders', count: orders.length },
     { value: 'In Transit', label: 'In Transit', count: orders.filter(o => o.status === 'In Transit').length },
     { value: 'Scheduled', label: 'Scheduled', count: orders.filter(o => o.status === 'Scheduled').length },
+    { value: 'Pending', label: 'Pending', count: orders.filter(o => o.status === 'Pending').length },
     { value: 'Delivered', label: 'Delivered', count: orders.filter(o => o.status === 'Delivered').length },
   ]
 
@@ -120,26 +100,26 @@ function OrderHistory() {
         </div>
 
         <div className="table-body">
-          {filteredOrders.map((order) => (
-            <div key={order.id} className="table-row">
+          {filteredOrders.length > 0 ? filteredOrders.map((order) => (
+            <div key={order.order_id} className="table-row">
               <div className="td td-id">
-                <span className="order-id-link">{order.id}</span>
+                <span className="order-id-link">#{order.order_id}</span>
               </div>
-              <div className="td td-date">{order.date}</div>
-              <div className="td td-delivery">{order.deliveryDate}</div>
+              <div className="td td-date">{order.order_date}</div>
+              <div className="td td-delivery">{order.delivery_date}</div>
               <div className="td td-status">
                 <span className={`badge ${getStatusColor(order.status)}`}>
                   {order.status}
                 </span>
               </div>
-              <div className="td td-items">{order.items} items</div>
+              <div className="td td-items">-</div>
               <div className="td td-total">
-                <span className="total-amount">{order.total}</span>
+                <span className="total-amount">-</span>
               </div>
               <div className="td td-actions">
                 <button
                   className="btn-action"
-                  onClick={() => downloadInvoice(order.id)}
+                  onClick={() => downloadInvoice(`#${order.order_id}`)}
                   title="Download Invoice"
                 >
                   ⬇️
@@ -154,7 +134,13 @@ function OrderHistory() {
                 </button>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="table-row empty-row">
+              <div style={{ padding: '24px', textAlign: 'center', gridColumn: '1 / -1' }}>
+                {loading ? 'Loading orders...' : 'No orders found'}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

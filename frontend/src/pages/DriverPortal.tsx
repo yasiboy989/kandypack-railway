@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import PortalLayout from '../components/PortalLayout'
 import { TruckIcon } from '../components/Icons'
+import { useAuth } from '../context/AuthContext'
 
 function DriverDashboard() {
   return (
@@ -18,11 +19,25 @@ function DriverDashboard() {
 }
 
 function DriverPortal() {
+  const { user, loading } = useAuth()
+
+  if (loading) return <div style={{ padding: 24 }}>Loading…</div>
+
+  // If not authenticated, redirect to login
+  if (!user) return <Navigate to="/login" replace />
+
+  const roleLower = (user.role || '').toLowerCase()
+  // Allow driver-related roles
+  if (!roleLower.includes('driver')) {
+    // If authenticated but not a driver, redirect to appropriate portal
+    return <Navigate to="/login" replace />
+  }
+
   return (
     <PortalLayout
       userType="driver"
-      userName="David Lee"
-      userEmail="david.lee@kandypack.com"
+      userName={user.user_name}
+      userEmail={user.email}
     >
       <Routes>
         <Route path="/" element={<DriverDashboard />} />

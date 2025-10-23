@@ -152,14 +152,16 @@
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--primary-color-1);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .user-avatar img {
@@ -170,8 +172,10 @@
 
 .avatar-placeholder {
   color: var(--neutral-100);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .user-info {

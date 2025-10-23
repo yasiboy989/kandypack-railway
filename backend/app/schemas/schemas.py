@@ -40,13 +40,14 @@ class UserCreate(BaseModel):
     email: EmailStr
     role: str
     password: str
-    employee_id: int
+    employee_id: Optional[int] = None
 
 class UserResponse(BaseModel):
     user_id: int
     user_name: str
     email: EmailStr
     role: str
+    customer_id: Optional[int] = None
 
 class UserPorfileUpdate(BaseModel):
     email: EmailStr
@@ -253,3 +254,13 @@ class OrderDetails(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: str
+
+class PublicCustomerRegister(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    name: str
+    contactNumber: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    type: Optional[str] = "Retail"

@@ -1,26 +1,39 @@
 import './AdminDashboard.css'
 import { HeartIcon, CartIcon, PackageIcon, MoneyIcon } from '../../components/Icons'
 import { useEffect, useState } from 'react'
-import { getAdminDashboardStats, type AdminDashboardStats } from '../../lib/api'
+import { getAdminDashboardStats, type AdminDashboardStats, getAdminChartData, type ChartDataResponse, getAdminAlerts, type DashboardAlert } from '../../lib/api'
 
 function AdminDashboard() {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null)
+  const [chartData, setChartData] = useState<ChartDataResponse | null>(null)
+  const [alerts, setAlerts] = useState<DashboardAlert[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let mounted = true
-    getAdminDashboardStats()
-      .then((data) => {
+
+    const loadDashboardData = async () => {
+      try {
+        const [statsData, chartDataRes, alertsData] = await Promise.all([
+          getAdminDashboardStats(),
+          getAdminChartData().catch(() => null),
+          getAdminAlerts().catch(() => []),
+        ])
+
         if (!mounted) return
-        setStats(data)
-      })
-      .catch((err) => {
-        console.error('Failed to load admin dashboard stats:', err)
-      })
-      .finally(() => {
+
+        setStats(statsData)
+        if (chartDataRes) setChartData(chartDataRes)
+        if (alertsData && Array.isArray(alertsData)) setAlerts(alertsData)
+      } catch (err) {
+        console.error('Failed to load admin dashboard:', err)
+      } finally {
         if (mounted) setLoading(false)
-      })
-    
+      }
+    }
+
+    loadDashboardData()
+
     return () => {
       mounted = false
     }
@@ -39,10 +52,8 @@ function AdminDashboard() {
     { label: 'Staff Active', value: stats.staff_active, max: 200 },
   ] : []
 
-  const recentAlerts = [
-    { type: 'error', message: 'Failed delivery in Route #123', time: '2 mins ago' },
-    { type: 'warning', message: 'Train capacity near limit for Trip #456', time: '15 mins ago' },
-    { type: 'info', message: 'New staff member registered', time: '1 hour ago' },
+  const recentAlerts = alerts.length > 0 ? alerts : [
+    { type: 'info', message: 'No active alerts', time: 'now' },
   ]
 
   if (loading) {
@@ -57,7 +68,6 @@ function AdminDashboard() {
     <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1 className="page-title">Analytics</h1>
-        <button className="btn-primary">May 2023 ▼</button>
       </div>
 
       <div className="stats-grid">
@@ -92,8 +102,8 @@ function AdminDashboard() {
           </div>
           <div className="chart-area">
             <div className="revenue-stats">
-              <div className="revenue-value">$240.8K</div>
-              <div className="badge badge-green badge-dot">14.8% ↗</div>
+              <div className="revenue-value">${chartData ? `${(chartData.revenue.total / 1000).toFixed(1)}K` : '0K'}</div>
+              <div className="badge badge-green badge-dot">{chartData?.revenue.growth_percent || 0}% ↗</div>
             </div>
             <div className="chart-legend">
               <div className="legend-item">
@@ -110,7 +120,19 @@ function AdminDashboard() {
               </div>
             </div>
             <div className="bar-chart">
-              {[69, 107, 133, 150, 107, 176, 60, 154, 86, 26, 58, 107].map((height, i) => (
+              {chartData && Object.entries(chartData.revenue.monthly_data).slice(0, 12).map(([month, data], i) => {
+                const currentClientHeight = Math.min(data.current_clients / 10, 200)
+                const subscribersHeight = Math.min(data.subscribers / 10, 200)
+                const newCustomersHeight = Math.min(data.new_customers / 10, 200)
+                return (
+                  <div key={i} className="bar-group" title={month}>
+                    <div className="bar" style={{ height: `${currentClientHeight}px`, background: 'var(--primary-color-1)' }}></div>
+                    <div className="bar" style={{ height: `${subscribersHeight}px`, background: 'var(--blue)' }}></div>
+                    <div className="bar" style={{ height: `${newCustomersHeight}px`, background: 'var(--secondary-color-3)' }}></div>
+                  </div>
+                )
+              })}
+              {!chartData && [69, 107, 133, 150, 107, 176, 60, 154, 86, 26, 58, 107].map((height, i) => (
                 <div key={i} className="bar-group">
                   <div className="bar" style={{ height: `${height}px`, background: 'var(--primary-color-1)' }}></div>
                   <div className="bar" style={{ height: `${height * 0.5}px`, background: 'var(--blue)' }}></div>
@@ -123,29 +145,29 @@ function AdminDashboard() {
 
         <div className="chart-card">
           <div className="card-header">
-            <h2>Website Visitors</h2>
+            <h2>Revenue by Type</h2>
             <button className="btn-secondary">Export ↓</button>
           </div>
           <div className="donut-chart">
             <div className="donut-center">
-              <div className="donut-value">150k</div>
+              <div className="donut-value">${chartData ? `${(chartData.revenue_analysis.total / 1000).toFixed(0)}k` : '0k'}</div>
             </div>
           </div>
           <div className="chart-stats">
             <div className="stat-row">
               <div className="stat-dot" style={{ background: 'var(--primary-color-1)' }}></div>
-              <span>Organic</span>
-              <span className="stat-percent">30%</span>
+              <span>Wholesale</span>
+              <span className="stat-percent">{chartData?.revenue_analysis.wholesale.percent || 0}%</span>
             </div>
             <div className="stat-row">
               <div className="stat-dot" style={{ background: 'var(--blue)' }}></div>
-              <span>Social</span>
-              <span className="stat-percent">50%</span>
+              <span>Retail</span>
+              <span className="stat-percent">{chartData?.revenue_analysis.retail.percent || 0}%</span>
             </div>
             <div className="stat-row">
               <div className="stat-dot" style={{ background: 'var(--secondary-color-3)' }}></div>
-              <span>Direct</span>
-              <span className="stat-percent">20%</span>
+              <span>Total Orders</span>
+              <span className="stat-percent">{chartData ? (chartData.revenue_analysis.wholesale.orders + chartData.revenue_analysis.retail.orders) : 0}</span>
             </div>
           </div>
         </div>

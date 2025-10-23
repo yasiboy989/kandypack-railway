@@ -1,31 +1,39 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import PortalLayout from '../components/PortalLayout'
-import { PackageIcon } from '../components/Icons'
-
-function WarehouseDashboard() {
-  return (
-    <div style={{ padding: '24px' }}>
-      <h1 className="page-title">Warehouse Dashboard</h1>
-      <p className="page-subtitle">Manage inventory, unloading, and dispatch operations</p>
-      <div style={{ marginTop: '32px', padding: '40px', background: 'var(--secondary-color-1)', borderRadius: '12px', textAlign: 'center' }}>
-        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
-          <PackageIcon size={48} />
-        </div>
-        <p style={{ color: 'var(--neutral-400)' }}>Warehouse operations dashboard</p>
-      </div>
-    </div>
-  )
-}
+import { useAuth } from '../context/AuthContext'
+import WarehouseDashboard from './warehouse/WarehouseDashboard'
+import InventoryManagement from './warehouse/InventoryManagement'
+import StockReports from './warehouse/StockReports'
+import StoreStockView from './warehouse/StoreStockView'
+import StockAlerts from './warehouse/StockAlerts'
 
 function WarehousePortal() {
+  const { user, loading } = useAuth()
+
+  if (loading) return <div style={{ padding: 24 }}>Loading…</div>
+
+  // If not authenticated, redirect to login
+  if (!user) return <Navigate to="/login" replace />
+
+  const roleLower = (user.role || '').toLowerCase()
+  // Allow warehouse-related roles
+  if (!roleLower.includes('warehouse')) {
+    // If authenticated but not a warehouse staff, redirect to appropriate portal
+    return <Navigate to="/login" replace />
+  }
+
   return (
     <PortalLayout
       userType="warehouse"
-      userName="Sarah Davis"
-      userEmail="sarah.davis@kandypack.com"
+      userName={user.user_name}
+      userEmail={user.email}
     >
       <Routes>
         <Route path="/" element={<WarehouseDashboard />} />
+        <Route path="inventory" element={<InventoryManagement />} />
+        <Route path="reports" element={<StockReports />} />
+        <Route path="store-stock" element={<StoreStockView />} />
+        <Route path="alerts" element={<StockAlerts />} />
         <Route path="*" element={<Navigate to="/warehouse" replace />} />
       </Routes>
     </PortalLayout>

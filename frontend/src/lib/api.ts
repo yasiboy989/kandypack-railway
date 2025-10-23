@@ -126,8 +126,7 @@ export interface UserProfile {
   user_name: string
   email: string
   role: string
-  // Optional: some views (e.g., assistant) expect this; backend profile may omit it
-  employee_id?: number
+  customer_id?: number
 }
 
 export async function loginWithPassword(username: string, password: string) {
@@ -195,6 +194,16 @@ export async function getOrders() {
     return Array.isArray(res) ? res : []
   } catch (err) {
     console.warn('getOrders failed, returning empty list:', err)
+    return [] as OrderSummary[]
+  }
+}
+
+export async function getOrdersByUser(userId: number) {
+  try {
+    const res = await apiFetch<OrderSummary[]>(`/orders/by-user/${userId}`)
+    return Array.isArray(res) ? res : []
+  } catch (err) {
+    console.warn('getOrdersByUser failed, returning empty list:', err)
     return [] as OrderSummary[]
   }
 }
@@ -406,6 +415,91 @@ export async function deleteUser(userId: number) {
   }
 }
 
+// Manager - Employees
+export interface EmployeeSummary {
+  employee_id: number
+  firstName: string
+  lastName: string
+  type: string
+}
+export async function getEmployees() {
+  try {
+    return await apiFetch<EmployeeSummary[]>('/employees')
+  } catch (err) {
+    console.warn('getEmployees failed:', err)
+    return []
+  }
+}
+
+// Manager - Trucks, Routes, Deliveries
+export interface Truck {
+  truck_id: number
+  plate_number: string
+  max_load: number
+  status: string
+}
+export interface RouteInfo {
+  route_id: number
+  start_location: string
+  end_location: string
+  max_delivery_time: string
+}
+export interface DeliveryInfo {
+  delivery_id: number
+  truck_id: number
+  route_id: number
+  delivery_date_time: string
+  status: string
+}
+
+export async function getTrucks() {
+  try {
+    return await apiFetch<Truck[]>('/Trucks/trucks')
+  } catch (err) {
+    console.warn('getTrucks failed:', err)
+    return []
+  }
+}
+export async function getRoutes() {
+  try {
+    return await apiFetch<RouteInfo[]>('/routes/routes')
+  } catch (err) {
+    console.warn('getRoutes failed:', err)
+    return []
+  }
+}
+export async function getDeliveries() {
+  try {
+    return await apiFetch<DeliveryInfo[]>('/deliveries/deliveries')
+  } catch (err) {
+    console.warn('getDeliveries failed:', err)
+    return []
+  }
+}
+
+export async function createDelivery(params: {
+  truck_id: number
+  route_id: number
+  user_id: number
+  delivery_date_time: string
+  driver_employee_id?: number | null
+  assistant_employee_id?: number | null
+}) {
+  const qs = new URLSearchParams()
+  qs.set('truck_id', String(params.truck_id))
+  qs.set('route_id', String(params.route_id))
+  qs.set('user_id', String(params.user_id))
+  qs.set('delivery_date_time', params.delivery_date_time)
+  if (params.driver_employee_id != null) qs.set('driver_employee_id', String(params.driver_employee_id))
+  if (params.assistant_employee_id != null) qs.set('assistant_employee_id', String(params.assistant_employee_id))
+  try {
+    return await apiFetch(`/deliveries/deliveries?${qs.toString()}`, { method: 'POST' })
+  } catch (err) {
+    console.warn('createDelivery failed:', err)
+    throw err
+  }
+}
+
 // Audit logs
 export interface AuditLog {
   audit_id: number
@@ -466,5 +560,291 @@ export async function getDriverHoursReport() {
   } catch (err) {
     console.warn('getDriverHoursReport failed:', err)
     return []
+  }
+}
+
+// Dashboard chart data
+export interface ChartDataResponse {
+  revenue: {
+    total: number
+    monthly_data: Record<string, { current_clients: number; subscribers: number; new_customers: number }>
+    growth_percent: number
+  }
+  revenue_analysis: {
+    total: number
+    by_type: Record<string, { revenue: number; orders: number }>
+    wholesale: { revenue: number; orders: number; percent: number }
+    retail: { revenue: number; orders: number; percent: number }
+  }
+}
+
+export interface DashboardAlert {
+  type: 'error' | 'warning' | 'info'
+  message: string
+  time: string
+}
+
+export async function getAdminChartData() {
+  try {
+    return await apiFetch<ChartDataResponse>('/dashboard/admin-chart-data')
+  } catch (err) {
+    console.warn('getAdminChartData failed:', err)
+    throw err
+  }
+}
+
+export async function getAdminAlerts() {
+  try {
+    return await apiFetch<DashboardAlert[]>('/dashboard/admin-alerts')
+  } catch (err) {
+    console.warn('getAdminAlerts failed:', err)
+    throw err
+  }
+}
+
+// Materialized Views Reports
+export interface TrainCapacityUtilization {
+  train_trip_id: number
+  departure_city: string
+  arrival_city: string
+  departure_date_time: string
+  total_capacity: number
+  available_capacity: number
+  used_capacity: number
+  utilization_percent: number
+  orders_count: number
+}
+
+export async function getTrainCapacityUtilization() {
+  try {
+    return await apiFetch<TrainCapacityUtilization[]>('/report/train-capacity-utilization')
+  } catch (err) {
+    console.warn('getTrainCapacityUtilization failed:', err)
+    return []
+  }
+}
+
+export interface DeliveryPerformance {
+  delivery_id: number
+  delivery_date_time: string
+  status: string
+  schedule_date: string
+  order_id: number
+  customer_name: string
+  performance_status: string
+  hours_delay: number | null
+}
+
+export async function getDeliveryPerformance() {
+  try {
+    return await apiFetch<DeliveryPerformance[]>('/report/delivery-performance')
+  } catch (err) {
+    console.warn('getDeliveryPerformance failed:', err)
+    return []
+  }
+}
+
+export interface EmployeeWorkload {
+  employee_id: number
+  first_name: string
+  last_name: string
+  employee_type: string
+  total_assignments: number
+  total_hours: number
+  avg_hours_per_assignment: number
+  last_assignment: string
+  assignments_this_week: number
+}
+
+export async function getEmployeeWorkload() {
+  try {
+    return await apiFetch<EmployeeWorkload[]>('/report/employee-workload')
+  } catch (err) {
+    console.warn('getEmployeeWorkload failed:', err)
+    return []
+  }
+}
+
+export interface RevenueAnalysis {
+  month: string
+  quarter: string
+  year: number
+  customer_type: string
+  order_count: number
+  total_revenue: number
+  avg_order_value: number
+  unique_customers: number
+}
+
+export async function getRevenueAnalysis() {
+  try {
+    return await apiFetch<RevenueAnalysis[]>('/report/revenue-analysis')
+  } catch (err) {
+    console.warn('getRevenueAnalysis failed:', err)
+    return []
+  }
+}
+
+export interface ProductPerformance {
+  product_id: number
+  product_name: string
+  category: string
+  unit_price: number
+  total_quantity_sold: number
+  total_revenue: number
+  order_count: number
+  avg_quantity_per_order: number
+  current_stock: number
+  stock_status: string
+}
+
+export async function getProductPerformance() {
+  try {
+    return await apiFetch<ProductPerformance[]>('/report/product-performance')
+  } catch (err) {
+    console.warn('getProductPerformance failed:', err)
+    return []
+  }
+}
+
+export interface InventoryAlert {
+  product_id: number
+  product_name: string
+  available_units: number
+  category: string
+  alert_level: string
+  suggested_reorder_point: number
+}
+
+export async function getInventoryAlerts() {
+  try {
+    return await apiFetch<InventoryAlert[]>('/report/inventory-alerts')
+  } catch (err) {
+    console.warn('getInventoryAlerts failed:', err)
+    return []
+  }
+}
+
+// Warehouse Manager specific APIs
+export interface WarehouseManagerStats {
+  total_products: number
+  total_units: number
+  low_stock_items: number
+  recent_updates: Array<{
+    product_id: number
+    product_name: string
+    available_units: number
+    category: string
+    last_updated: string
+  }>
+  category_distribution: Array<{
+    category: string
+    product_count: number
+    total_units: number
+  }>
+  stock_trend: Array<{
+    date: string
+    issued_units: number
+  }>
+}
+
+export async function getWarehouseManagerStats() {
+  try {
+    return await apiFetch<WarehouseManagerStats>('/dashboard/warehouse-manager-stats')
+  } catch (err) {
+    console.warn('getWarehouseManagerStats failed:', err)
+    throw err
+  }
+}
+
+export interface ProductDetail {
+  product_id: number
+  product_name: string
+  category: string
+  unit_price: number
+  unit_weight: number
+  train_space_per_unit: number
+  available_units: number
+}
+
+export async function getProductDetails(productId: number) {
+  try {
+    return await apiFetch<ProductDetail>(`/products/${productId}`)
+  } catch (err) {
+    console.warn('getProductDetails failed:', err)
+    throw err
+  }
+}
+
+export async function updateProductStock(productId: number, availableUnits: number) {
+  try {
+    return await apiFetch<ProductDetail>(`/products/${productId}`, {
+      method: 'PUT',
+      body: { available_units: availableUnits }
+    })
+  } catch (err) {
+    console.warn('updateProductStock failed:', err)
+    throw err
+  }
+}
+
+export interface Store {
+  store_id: number
+  city: string
+  address: string
+  near_station_name?: string
+}
+
+export async function getStores() {
+  try {
+    const res = await apiFetch<Store[]>('/stores')
+    return Array.isArray(res) ? res : []
+  } catch (err) {
+    console.warn('getStores failed:', err)
+    return []
+  }
+}
+
+// Role management
+export interface Role {
+  role_id: number
+  role_name: string
+  accessRights?: string
+  access_rights?: string
+}
+
+export async function getRoles() {
+  try {
+    return await apiFetch<Role[]>('/roles')
+  } catch (err) {
+    console.warn('getRoles failed:', err)
+    return []
+  }
+}
+
+export async function createRole(roleData: { role_name: string; accessRights: string }) {
+  try {
+    return await apiFetch<Role>('/roles', { method: 'POST', body: roleData })
+  } catch (err) {
+    console.warn('createRole failed:', err)
+    throw err
+  }
+}
+
+export async function updateRole(roleId: number, accessRights: string) {
+  try {
+    return await apiFetch<Role>(`/roles/${roleId}`, { method: 'PUT', body: { accessRights: accessRights } })
+  } catch (err) {
+    console.warn('updateRole failed:', err)
+    throw err
+  }
+}
+
+export async function deleteRole(roleId: number) {
+  try {
+    return await apiFetch(`/roles/${roleId}`, { method: 'DELETE' })
+  } catch (err) {
+    console.warn('deleteRole failed:', err)
+    throw err
   }
 }

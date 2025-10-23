@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { useContext } from 'react'
+import { AuthProvider, AuthContext } from './context/AuthContext'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import CustomerLogin from './pages/customer/CustomerLogin'
@@ -9,7 +11,8 @@ import WarehousePortal from './pages/WarehousePortal'
 import AssistantPortal from './pages/AssistantPortal'
 
 function App() {
-  return (
+  const ctx = useContext(AuthContext)
+  const Content = (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -24,6 +27,9 @@ function App() {
       </Routes>
     </Router>
   )
+
+  // If no provider above, wrap here. This avoids crashes when App is rendered in isolation.
+  return ctx === undefined ? <AuthProvider>{Content}</AuthProvider> : Content
 }
 
 export default App
