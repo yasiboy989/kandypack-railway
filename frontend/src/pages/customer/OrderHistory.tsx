@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './OrderHistory.css'
+import { PackageIcon } from '../../components/Icons'
 
 function OrderHistory() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
@@ -159,7 +160,9 @@ function OrderHistory() {
 
       {filteredOrders.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">📦</div>
+          <div className="empty-icon">
+            <PackageIcon size={48} />
+          </div>
           <p>No orders found</p>
         </div>
       )}

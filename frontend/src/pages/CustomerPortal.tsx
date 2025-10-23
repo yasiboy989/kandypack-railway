@@ -3,7 +3,6 @@ import PortalLayout from '../components/PortalLayout'
 import CustomerDashboard from './customer/CustomerDashboard'
 import NewOrder from './customer/NewOrder'
 import OrderHistory from './customer/OrderHistory'
-import ProfileSettings from './customer/ProfileSettings'
 import { useAuth } from '../context/AuthContext'
 
 function CustomerPortal() {
@@ -31,7 +30,6 @@ function CustomerPortal() {
         <Route path="/" element={<CustomerDashboard />} />
         <Route path="/new-order" element={<NewOrder />} />
         <Route path="/history" element={<OrderHistory />} />
-        <Route path="/settings" element={<ProfileSettings />} />
         <Route path="*" element={<Navigate to="/customer" replace />} />
       </Routes>
     </PortalLayout>

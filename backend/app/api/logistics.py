@@ -1,7 +1,8 @@
-from fastapi import HTTPException, Query,APIRouter,Path,Body
+from fastapi import HTTPException, Query,APIRouter,Path,Body, Depends
 from ..db.database import get_db_connection
 from datetime import datetime
 from psycopg2.extras import RealDictCursor
+from .core import get_current_user
 
 train_trips_router = APIRouter(
     prefix="/train-trips",   # all routes here start with /train-trips
@@ -271,6 +272,146 @@ def update_delivery_status(
         return {"id": updated["delivery_id"], "status": updated["status"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+@deliveries_router.get("/assistant/{employee_id}/assignments")
+def get_assistant_assignments(employee_id: int = Path(...), current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                d.delivery_id,
+                d.delivery_date_time,
+                d.status,
+                r.start_location,
+                r.end_location,
+                t.plate_number,
+                t.truck_id,
+                COALESCE(e.first_name || ' ' || e.last_name, 'Not Assigned') AS driver_name,
+                e.employee_id AS driver_id,
+                COUNT(o.order_id) AS order_count
+            FROM delivery d
+            JOIN route r ON d.route_id = r.route_id
+            JOIN truck t ON d.truck_id = t.truck_id
+            LEFT JOIN employee e ON d.driver_employee_id = e.employee_id
+            LEFT JOIN "order" o ON o.delivery_id = d.delivery_id
+            WHERE d.assistant_employee_id = %s
+              AND d.delivery_date_time >= NOW()
+            GROUP BY d.delivery_id, d.delivery_date_time, d.status, r.start_location, r.end_location, t.plate_number, t.truck_id, e.employee_id, e.first_name, e.last_name
+            ORDER BY d.delivery_date_time ASC
+        """, (employee_id,))
+        assignments = cursor.fetchall()
+        return [dict(a) for a in assignments]
+    finally:
+        cursor.close()
+        conn.close()
+
+@deliveries_router.get("/{delivery_id}/order-items")
+def get_delivery_items(delivery_id: int = Path(...), current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            SELECT
+                o.order_id,
+                c.name AS customer_name,
+                oi.product_id,
+                p.product_name,
+                oi.quantity
+            FROM "order" o
+            JOIN order_item oi ON o.order_id = oi.order_id
+            JOIN product p ON oi.product_id = p.product_id
+            JOIN customer c ON o.customer_id = c.customer_id
+            WHERE o.delivery_id = %s
+            ORDER BY o.order_id, p.product_name
+        """, (delivery_id,))
+        items = cursor.fetchall()
+        return [dict(i) for i in items]
+    finally:
+        cursor.close()
+        conn.close()
+
+@deliveries_router.post("/{delivery_id}/confirm-item")
+def confirm_delivery_item(
+    delivery_id: int = Path(...),
+    payload: dict = Body(..., example={"order_id": 1, "product_id": 1, "confirmed_quantity": 5}),
+    current_user = Depends(get_current_user)
+):
+    order_id = payload.get("order_id")
+    product_id = payload.get("product_id")
+    confirmed_quantity = payload.get("confirmed_quantity", 0)
+
+    if not order_id or not product_id:
+        raise HTTPException(status_code=400, detail="order_id and product_id are required")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Create a delivery_confirmation tracking (if you have this table)
+        # For now, just mark the item as confirmed by updating status
+        cursor.execute("""
+            UPDATE "order" SET status = 'Delivered'
+            WHERE order_id = %s
+            RETURNING order_id, status
+        """, (order_id,))
+        result = cursor.fetchone()
+        conn.commit()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        return {"order_id": result[0] if isinstance(result, tuple) else result['order_id'], "status": result[1] if isinstance(result, tuple) else result['status']}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+@deliveries_router.get("/assistant/{employee_id}/notifications")
+def get_assistant_notifications(employee_id: int = Path(...), current_user = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        notifications = []
+
+        # Get upcoming deliveries
+        cursor.execute("""
+            SELECT
+                d.delivery_id,
+                'Route Update' AS type,
+                'Upcoming delivery to ' || r.end_location AS message,
+                d.delivery_date_time::text AS timestamp
+            FROM delivery d
+            JOIN route r ON d.route_id = r.route_id
+            WHERE d.assistant_employee_id = %s
+              AND d.delivery_date_time >= NOW()
+              AND d.delivery_date_time <= NOW() + INTERVAL '24 hours'
+            ORDER BY d.delivery_date_time DESC
+            LIMIT 5
+        """, (employee_id,))
+
+        notifications.extend([dict(n) for n in cursor.fetchall()])
+
+        # Get alerts for items ready for delivery
+        cursor.execute("""
+            SELECT
+                'Alert' AS type,
+                'Items ready for delivery at ' || r.end_location AS message,
+                NOW()::text AS timestamp
+            FROM delivery d
+            JOIN route r ON d.route_id = r.route_id
+            WHERE d.assistant_employee_id = %s
+              AND d.status = 'In Transit'
+            LIMIT 3
+        """, (employee_id,))
+
+        notifications.extend([dict(n) for n in cursor.fetchall()])
+
+        return notifications
     finally:
         cursor.close()
         conn.close()

@@ -205,3 +205,259 @@ export async function registerCustomer(payload: Record<string, any>) {
     throw err
   }
 }
+
+// Dashboard API calls
+export interface AdminDashboardStats {
+  total_orders: number
+  pending_orders: number
+  delivered_orders: number
+  active_users: number
+  train_utilization: number
+  truck_utilization: number
+  staff_active: number
+}
+
+export interface ManagerDashboardStats {
+  active_train_trips: number
+  active_truck_routes: number
+  pending_orders: number
+  on_time_rate: number
+  upcoming_trips: Array<{
+    id: string
+    route: string
+    date: string
+    capacity: string
+    orders: number
+  }>
+  pending_orders_details: Array<{
+    id: string
+    customer: string
+    items: number
+    deadline: string
+    priority: string
+  }>
+}
+
+export interface CustomerDashboardStats {
+  total_orders: number
+  active_orders: number
+  recent_orders: Array<{
+    order_id: number
+    status: string
+    order_date: string
+    delivery_date: string
+  }>
+}
+
+export async function getAdminDashboardStats() {
+  try {
+    return await apiFetch<AdminDashboardStats>('/dashboard/admin-stats')
+  } catch (err) {
+    console.warn('getAdminDashboardStats failed:', err)
+    throw err
+  }
+}
+
+export async function getManagerDashboardStats() {
+  try {
+    return await apiFetch<ManagerDashboardStats>('/dashboard/manager-stats')
+  } catch (err) {
+    console.warn('getManagerDashboardStats failed:', err)
+    throw err
+  }
+}
+
+export async function getCustomerDashboardStats() {
+  try {
+    return await apiFetch<CustomerDashboardStats>('/dashboard/customer-stats')
+  } catch (err) {
+    console.warn('getCustomerDashboardStats failed:', err)
+    throw err
+  }
+}
+
+// Order management API calls
+export interface OrderDetails {
+  order_id: number
+  status: string
+  order_date: string
+  schedule_date: string
+  customer_name: string
+  customer_city: string
+  delivery_date_time?: string
+  delivery_status?: string
+  items: Array<{
+    product_id: number
+    quantity: number
+    product_name: string
+    unit_price: number
+  }>
+}
+
+export async function getOrderDetails(orderId: number) {
+  try {
+    return await apiFetch<OrderDetails>(`/orders/${orderId}`)
+  } catch (err) {
+    console.warn('getOrderDetails failed:', err)
+    throw err
+  }
+}
+
+export async function updateOrderStatus(orderId: number, status: string) {
+  try {
+    return await apiFetch(`/orders/${orderId}/status`, { 
+      method: 'PUT', 
+      body: { status } 
+    })
+  } catch (err) {
+    console.warn('updateOrderStatus failed:', err)
+    throw err
+  }
+}
+
+// Customer order creation
+export interface CreateOrderRequest {
+  scheduleDate: string
+  items: Array<{
+    productID: number
+    quantity: number
+  }>
+}
+
+export async function createCustomerOrder(customerId: number, order: CreateOrderRequest) {
+  try {
+    return await apiFetch(`/customers/${customerId}/orders`, { 
+      method: 'POST', 
+      body: order 
+    })
+  } catch (err) {
+    console.warn('createCustomerOrder failed:', err)
+    throw err
+  }
+}
+
+// Train allocation
+export async function allocateOrderToTrain(orderId: number) {
+  try {
+    return await apiFetch(`/orders/${orderId}/allocate-train`, { method: 'POST' })
+  } catch (err) {
+    console.warn('allocateOrderToTrain failed:', err)
+    throw err
+  }
+}
+
+// User management
+export interface User {
+  user_id: number
+  user_name: string
+  email: string
+  role: string
+}
+
+export async function getUsers() {
+  try {
+    return await apiFetch<User[]>('/users')
+  } catch (err) {
+    console.warn('getUsers failed:', err)
+    return []
+  }
+}
+
+export async function createUser(userData: {
+  username: string
+  email: string
+  role: string
+  password: string
+  employee_id?: number
+}) {
+  try {
+    return await apiFetch<User>('/users', { method: 'POST', body: userData })
+  } catch (err) {
+    console.warn('createUser failed:', err)
+    throw err
+  }
+}
+
+export async function updateUser(userId: number, email: string) {
+  try {
+    return await apiFetch<User>(`/users/${userId}`, { 
+      method: 'PUT', 
+      body: { email } 
+    })
+  } catch (err) {
+    console.warn('updateUser failed:', err)
+    throw err
+  }
+}
+
+export async function deleteUser(userId: number) {
+  try {
+    return await apiFetch(`/users/${userId}`, { method: 'DELETE' })
+  } catch (err) {
+    console.warn('deleteUser failed:', err)
+    throw err
+  }
+}
+
+// Audit logs
+export interface AuditLog {
+  audit_id: number
+  table_name: string
+  operation: string
+  performed_by?: number
+  performed_at: string
+  row_data?: any
+}
+
+export async function getAuditLogs() {
+  try {
+    return await apiFetch<AuditLog[]>('/auditlog')
+  } catch (err) {
+    console.warn('getAuditLogs failed:', err)
+    return []
+  }
+}
+
+// Reports
+export interface SalesReport {
+  year: number
+  quarter: string
+  totals: number
+}
+
+export async function getSalesReport() {
+  try {
+    return await apiFetch<SalesReport[]>('/report/sales')
+  } catch (err) {
+    console.warn('getSalesReport failed:', err)
+    return []
+  }
+}
+
+export interface TruckUsageReport {
+  truckId: number
+  usageRate: number
+}
+
+export async function getTruckUsageReport() {
+  try {
+    return await apiFetch<TruckUsageReport[]>('/report/truck_usage')
+  } catch (err) {
+    console.warn('getTruckUsageReport failed:', err)
+    return []
+  }
+}
+
+export interface DriverHoursReport {
+  employeeId: number
+  totalHours: number
+}
+
+export async function getDriverHoursReport() {
+  try {
+    return await apiFetch<DriverHoursReport[]>('/report/driver-hours')
+  } catch (err) {
+    console.warn('getDriverHoursReport failed:', err)
+    return []
+  }
+}

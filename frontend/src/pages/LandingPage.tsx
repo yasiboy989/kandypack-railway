@@ -1,5 +1,13 @@
 import { Link } from 'react-router-dom'
 import './LandingPage.css'
+import {
+  UserManagementIcon,
+  ReportsIcon,
+  PackageIcon,
+  TruckIcon,
+  CheckIcon,
+  ShoppingIcon,
+} from '../components/Icons'
 
 function LandingPage() {
   return (
@@ -10,10 +18,10 @@ function LandingPage() {
             <div className="logo-shape logo-shape-1"></div>
             <div className="logo-shape logo-shape-2"></div>
           </div>
-          <span className="logo-text">Dashdark X Logistics</span>
+          <span className="logo-text">Kandypack Logistics</span>
         </div>
         <nav className="landing-nav">
-          <Link to="/customer" className="nav-link">Customer Portal</Link>
+          <Link to="/customer" className="nav-link">Customer Login</Link>
           <Link to="/login" className="btn-primary">Staff Login</Link>
         </nav>
       </header>
@@ -27,7 +35,7 @@ function LandingPage() {
             </p>
             <div className="hero-actions">
               <Link to="/customer/login" className="btn-hero btn-primary-large">
-                Access Customer Portal →
+                Access Customer Login →
               </Link>
               <Link to="/login" className="btn-hero btn-secondary-large">
                 Staff Login
@@ -52,33 +60,38 @@ function LandingPage() {
           <h2 className="section-title">Comprehensive Portal System</h2>
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon">👥</div>
+              <div className="feature-icon">
+                <UserManagementIcon size={48} />
+              </div>
               <h3 className="feature-title">Admin Portal</h3>
               <p className="feature-desc">Full system control, user management, and comprehensive reporting</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">📊</div>
+              <div className="feature-icon">
+                <ReportsIcon size={48} />
+              </div>
               <h3 className="feature-title">Manager Portal</h3>
               <p className="feature-desc">Train & truck scheduling, route optimization, and operations oversight</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">📦</div>
+              <div className="feature-icon">
+                <PackageIcon size={48} />
+              </div>
               <h3 className="feature-title">Warehouse Portal</h3>
               <p className="feature-desc">Inventory management, unloading confirmation, and dispatch preparation</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">🚛</div>
-              <h3 className="feature-title">Driver Portal</h3>
-              <p className="feature-desc">Delivery management, route navigation, and real-time status updates</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">✓</div>
-              <h3 className="feature-title">Assistant Portal</h3>
-              <p className="feature-desc">Delivery support, task management, and trip assistance</p>
+              <div className="feature-icon">
+                <TruckIcon size={48} />
+              </div>
+              <h3 className="feature-title">Driver & Assistant Portal</h3>
+              <p className="feature-desc">Mobile-friendly delivery schedule with route map, check-in/out for trips, and delivery confirmation</p>
             </div>
             <div className="feature-card feature-card-highlight">
-              <div className="feature-icon">🛒</div>
-              <h3 className="feature-title">Customer Portal</h3>
+              <div className="feature-icon">
+                <ShoppingIcon size={48} />
+              </div>
+              <h3 className="feature-title">Customer Login</h3>
               <p className="feature-desc">Place orders, track deliveries, and manage account settings</p>
               <Link to="/customer/login" className="feature-link">Get Started →</Link>
             </div>
@@ -91,7 +104,7 @@ function LandingPage() {
             <p className="cta-subtitle">Join our platform today and experience efficient delivery management</p>
             <div className="cta-actions">
               <Link to="/customer/login" className="btn-primary-large">
-                Customer Portal →
+                Customer Login →
               </Link>
             </div>
           </div>
@@ -99,7 +112,7 @@ function LandingPage() {
       </main>
 
       <footer className="landing-footer">
-        <p>© 2024 Dashdark X Logistics. All rights reserved.</p>
+        <p>© 2024 Kandypack Logistics. All rights reserved.</p>
       </footer>
     </div>
   )

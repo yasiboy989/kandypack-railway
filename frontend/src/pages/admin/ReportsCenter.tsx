@@ -1,5 +1,18 @@
 import { useState } from 'react'
 import './ReportsCenter.css'
+import {
+  ReportsIcon,
+  CityIcon,
+  MapIcon,
+  UserManagementIcon,
+  TimerIcon,
+  TruckIcon,
+  TrainIcon,
+  PackageIcon,
+  MoneyIcon,
+  ReceiptIcon,
+  DocumentIcon,
+} from '../../components/Icons'
 
 function ReportsCenter() {
   const [selectedReport, setSelectedReport] = useState<string>('')
@@ -9,28 +22,28 @@ function ReportsCenter() {
     {
       category: 'Sales Reports',
       items: [
-        { id: 'quarterly', name: 'Quarterly Sales Report', icon: '📊' },
-        { id: 'city', name: 'Sales by City', icon: '🏙️' },
-        { id: 'route', name: 'Sales by Route', icon: '🗺️' },
-        { id: 'customer', name: 'Customer Analysis', icon: '👥' },
+        { id: 'quarterly', name: 'Quarterly Sales Report', icon: ReportsIcon },
+        { id: 'city', name: 'Sales by City', icon: CityIcon },
+        { id: 'route', name: 'Sales by Route', icon: MapIcon },
+        { id: 'customer', name: 'Customer Analysis', icon: UserManagementIcon },
       ]
     },
     {
       category: 'Operations Reports',
       items: [
-        { id: 'driver-hours', name: 'Driver/Assistant Hours', icon: '⏱️' },
-        { id: 'truck-usage', name: 'Truck Usage per Month', icon: '🚛' },
-        { id: 'train-usage', name: 'Train Utilization', icon: '🚂' },
-        { id: 'delivery-status', name: 'Delivery Status Report', icon: '📦' },
+        { id: 'driver-hours', name: 'Driver/Assistant Hours', icon: TimerIcon },
+        { id: 'truck-usage', name: 'Truck Usage per Month', icon: TruckIcon },
+        { id: 'train-usage', name: 'Train Utilization', icon: TrainIcon },
+        { id: 'delivery-status', name: 'Delivery Status Report', icon: PackageIcon },
       ]
     },
     {
       category: 'Financial Reports',
       items: [
-        { id: 'revenue', name: 'Revenue Report', icon: '💰' },
-        { id: 'expenses', name: 'Expense Analysis', icon: '💸' },
-        { id: 'profit', name: 'Profit & Loss', icon: '📈' },
-        { id: 'invoice', name: 'Invoice History', icon: '🧾' },
+        { id: 'revenue', name: 'Revenue Report', icon: MoneyIcon },
+        { id: 'expenses', name: 'Expense Analysis', icon: MoneyIcon },
+        { id: 'profit', name: 'Profit & Loss', icon: ReportsIcon },
+        { id: 'invoice', name: 'Invoice History', icon: ReceiptIcon },
       ]
     }
   ]
@@ -80,16 +93,21 @@ function ReportsCenter() {
               <div key={idx} className="category-section">
                 <h3 className="category-title">{category.category}</h3>
                 <div className="category-items">
-                  {category.items.map((item) => (
-                    <button
-                      key={item.id}
-                      className={`report-item ${selectedReport === item.id ? 'active' : ''}`}
-                      onClick={() => setSelectedReport(item.id)}
-                    >
-                      <span className="report-icon">{item.icon}</span>
-                      <span className="report-name">{item.name}</span>
-                    </button>
-                  ))}
+                  {category.items.map((item) => {
+                    const IconComponent = item.icon
+                    return (
+                      <button
+                        key={item.id}
+                        className={`report-item ${selectedReport === item.id ? 'active' : ''}`}
+                        onClick={() => setSelectedReport(item.id)}
+                      >
+                        <span className="report-icon">
+                          <IconComponent size={18} />
+                        </span>
+                        <span className="report-name">{item.name}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -148,7 +166,9 @@ function ReportsCenter() {
               </div>
             ) : (
               <div className="empty-state">
-                <div className="empty-icon">📊</div>
+                <div className="empty-icon">
+                  <ReportsIcon size={48} />
+                </div>
                 <p>Select a report type from the left to get started</p>
               </div>
             )}
@@ -164,7 +184,9 @@ function ReportsCenter() {
               {recentReports.map((report, idx) => (
                 <div key={idx} className="report-card">
                   <div className="report-info">
-                    <div className="report-icon-large">📄</div>
+                    <div className="report-icon-large">
+                      <DocumentIcon size={32} />
+                    </div>
                     <div className="report-details">
                       <div className="report-title">{report.name}</div>
                       <div className="report-meta">

@@ -20,6 +20,7 @@ app.include_router(core.employee_router)
 app.include_router(core.customer_router)
 app.include_router(core.products_router)
 app.include_router(core.orders_router)
+app.include_router(core.dashboard_router)
 
 # Logistics and operations routers
 app.include_router(logistics.train_trips_router)

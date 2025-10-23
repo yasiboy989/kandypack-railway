@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import PortalLayout from '../components/PortalLayout'
+import { TruckIcon } from '../components/Icons'
 
 function DriverDashboard() {
   return (
@@ -7,7 +8,9 @@ function DriverDashboard() {
       <h1 className="page-title">Driver Dashboard</h1>
       <p className="page-subtitle">Manage your deliveries and routes (Mobile-Friendly)</p>
       <div style={{ marginTop: '32px', padding: '40px', background: 'var(--secondary-color-1)', borderRadius: '12px', textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚛</div>
+        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+          <TruckIcon size={48} />
+        </div>
         <p style={{ color: 'var(--neutral-400)' }}>Driver mobile-friendly dashboard</p>
       </div>
     </div>
@@ -19,7 +22,7 @@ function DriverPortal() {
     <PortalLayout
       userType="driver"
       userName="David Lee"
-      userEmail="david.lee@dashdark.com"
+      userEmail="david.lee@kandypack.com"
     >
       <Routes>
         <Route path="/" element={<DriverDashboard />} />

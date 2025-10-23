@@ -1,24 +1,45 @@
 import { Link } from 'react-router-dom'
 import './ManagerDashboard.css'
+import { TrainIcon, TruckIcon, PackageIcon, CheckIcon, ReportsIcon } from '../../components/Icons'
+import { useEffect, useState } from 'react'
+import { getManagerDashboardStats, type ManagerDashboardStats } from '../../lib/api'
 
 function ManagerDashboard() {
-  const upcomingTrips = [
-    { id: 'T-145', type: 'Train', route: 'City A → City B', date: '2025-01-05', capacity: '85%', status: 'On Schedule' },
-    { id: 'T-146', type: 'Train', route: 'City C → City D', date: '2025-01-06', capacity: '92%', status: 'Near Full' },
-    { id: 'TR-234', type: 'Truck', route: 'Warehouse → Zone 5', date: '2025-01-05', capacity: '70%', status: 'On Schedule' },
-  ]
+  const [stats, setStats] = useState<ManagerDashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const pendingOrders = [
-    { id: '#1540', customer: 'Acme Corp', items: 5, deadline: '2025-01-10', priority: 'High' },
-    { id: '#1541', customer: 'Tech Inc', items: 3, deadline: '2025-01-12', priority: 'Medium' },
-    { id: '#1542', customer: 'Global LLC', items: 8, deadline: '2025-01-08', priority: 'High' },
-  ]
+  useEffect(() => {
+    let mounted = true
+    getManagerDashboardStats()
+      .then((data) => {
+        if (!mounted) return
+        setStats(data)
+      })
+      .catch((err) => {
+        console.error('Failed to load manager dashboard stats:', err)
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+    
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const alerts = [
-    { type: 'warning', message: 'Train T-146 capacity at 92% - consider overflow planning', time: '10 mins ago' },
+    { type: 'warning', message: 'Train capacity near limit - consider overflow planning', time: '10 mins ago' },
     { type: 'error', message: 'Driver conflict detected for Route TR-234', time: '1 hour ago' },
-    { type: 'info', message: '15 orders pending scheduling review', time: '2 hours ago' },
+    { type: 'info', message: `${stats?.pending_orders || 0} orders pending scheduling review`, time: '2 hours ago' },
   ]
+
+  if (loading) {
+    return (
+      <div className="manager-dashboard">
+        <div style={{ padding: '24px', textAlign: 'center' }}>Loading dashboard...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="manager-dashboard">
@@ -34,37 +55,45 @@ function ManagerDashboard() {
 
       <div className="dashboard-stats">
         <div className="stat-card">
-          <div className="stat-icon">🚂</div>
+          <div className="stat-icon">
+            <TrainIcon size={32} />
+          </div>
           <div className="stat-content">
             <div className="stat-label">Active Train Trips</div>
-            <div className="stat-value">12</div>
+            <div className="stat-value">{stats?.active_train_trips || 0}</div>
             <div className="stat-change positive">+2 this week</div>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">🚛</div>
+          <div className="stat-icon">
+            <TruckIcon size={32} />
+          </div>
           <div className="stat-content">
             <div className="stat-label">Active Truck Routes</div>
-            <div className="stat-value">28</div>
+            <div className="stat-value">{stats?.active_truck_routes || 0}</div>
             <div className="stat-change positive">+5 today</div>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📦</div>
+          <div className="stat-icon">
+            <PackageIcon size={32} />
+          </div>
           <div className="stat-content">
             <div className="stat-label">Pending Orders</div>
-            <div className="stat-value">15</div>
+            <div className="stat-value">{stats?.pending_orders || 0}</div>
             <div className="stat-change">Needs review</div>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">✓</div>
+          <div className="stat-icon">
+            <CheckIcon size={32} />
+          </div>
           <div className="stat-content">
             <div className="stat-label">On-Time Rate</div>
-            <div className="stat-value">94%</div>
+            <div className="stat-value">{stats?.on_time_rate || 0}%</div>
             <div className="stat-change positive">+3% vs last month</div>
           </div>
         </div>
@@ -90,10 +119,10 @@ function ManagerDashboard() {
               <div className="th">Status</div>
             </div>
             
-            {upcomingTrips.map((trip) => (
+            {stats?.upcoming_trips.map((trip) => (
               <div key={trip.id} className="table-row">
                 <div className="td td-id">{trip.id}</div>
-                <div className="td">{trip.type}</div>
+                <div className="td">Train</div>
                 <div className="td">{trip.route}</div>
                 <div className="td">{trip.date}</div>
                 <div className="td">
@@ -103,12 +132,12 @@ function ManagerDashboard() {
                   </div>
                 </div>
                 <div className="td">
-                  <span className={`badge ${trip.status === 'Near Full' ? 'badge-yellow' : 'badge-green'}`}>
-                    {trip.status}
+                  <span className={`badge ${parseFloat(trip.capacity) > 90 ? 'badge-yellow' : 'badge-green'}`}>
+                    {parseFloat(trip.capacity) > 90 ? 'Near Full' : 'On Schedule'}
                   </span>
                 </div>
               </div>
-            ))}
+            )) || []}
           </div>
         </div>
 
@@ -119,7 +148,7 @@ function ManagerDashboard() {
           </div>
 
           <div className="orders-list">
-            {pendingOrders.map((order) => (
+            {stats?.pending_orders_details.map((order) => (
               <div key={order.id} className="order-card">
                 <div className="order-header">
                   <span className="order-id">{order.id}</span>
@@ -143,7 +172,7 @@ function ManagerDashboard() {
                 </div>
                 <button className="btn-secondary-small">Schedule Now</button>
               </div>
-            ))}
+            )) || []}
           </div>
         </div>
       </div>
@@ -176,22 +205,30 @@ function ManagerDashboard() {
         <h2>Quick Actions</h2>
         <div className="actions-grid">
           <Link to="/manager/train" className="action-card">
-            <div className="action-icon">🚂</div>
+            <div className="action-icon">
+              <TrainIcon size={32} />
+            </div>
             <div className="action-label">Schedule Train Trip</div>
           </Link>
 
           <Link to="/manager/truck" className="action-card">
-            <div className="action-icon">🚛</div>
+            <div className="action-icon">
+              <TruckIcon size={32} />
+            </div>
             <div className="action-label">Assign Truck Route</div>
           </Link>
 
           <Link to="/manager/orders" className="action-card">
-            <div className="action-icon">📦</div>
+            <div className="action-icon">
+              <PackageIcon size={32} />
+            </div>
             <div className="action-label">Review Orders</div>
           </Link>
 
           <Link to="/manager/reports" className="action-card">
-            <div className="action-icon">📊</div>
+            <div className="action-icon">
+              <ReportsIcon size={32} />
+            </div>
             <div className="action-label">View Reports</div>
           </Link>
         </div>

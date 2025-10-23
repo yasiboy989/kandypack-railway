@@ -1,56 +1,82 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './UserManagement.css'
-
-interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-  status: 'active' | 'inactive'
-  lastLogin: string
-}
+import { getUsers, createUser, updateUser, deleteUser, type User } from '../../lib/api'
 
 function UserManagement() {
-  const [users, setUsers] = useState<User[]>([
-    { id: '1', name: 'John Carter', email: 'john@example.com', role: 'Admin', status: 'active', lastLogin: '2024-01-30' },
-    { id: '2', name: 'Sophie Moore', email: 'sophie@example.com', role: 'Manager', status: 'active', lastLogin: '2024-01-29' },
-    { id: '3', name: 'Matt Cannon', email: 'matt@example.com', role: 'Driver', status: 'active', lastLogin: '2024-01-28' },
-    { id: '4', name: 'Graham Hills', email: 'graham@example.com', role: 'Warehouse', status: 'inactive', lastLogin: '2024-01-20' },
-  ])
-
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
-    role: 'Driver',
+    role: 'Assistant',
     password: '',
   })
 
-  const handleAddUser = (e: React.FormEvent) => {
+  useEffect(() => {
+    let mounted = true
+    getUsers()
+      .then((userList) => {
+        if (!mounted) return
+        setUsers(userList)
+      })
+      .catch((err) => {
+        console.error('Failed to load users:', err)
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+    
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    const user: User = {
-      id: String(users.length + 1),
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      status: 'active',
-      lastLogin: new Date().toISOString().split('T')[0],
+    try {
+      const userData = {
+        username: newUser.name.toLowerCase().replace(/\s+/g, ''),
+        email: newUser.email,
+        role: newUser.role,
+        password: newUser.password,
+        employee_id: null
+      }
+      
+      const createdUser = await createUser(userData)
+      setUsers([...users, createdUser])
+      setShowAddModal(false)
+      setNewUser({ name: '', email: '', role: 'Assistant', password: '' })
+    } catch (error) {
+      console.error('Failed to create user:', error)
+      alert('Failed to create user. Please try again.')
     }
-    setUsers([...users, user])
-    setShowAddModal(false)
-    setNewUser({ name: '', email: '', role: 'Driver', password: '' })
   }
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = async (id: number) => {
     if (confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(u => u.id !== id))
+      try {
+        await deleteUser(id)
+        setUsers(users.filter(u => u.user_id !== id))
+      } catch (error) {
+        console.error('Failed to delete user:', error)
+        alert('Failed to delete user. Please try again.')
+      }
     }
   }
 
-  const handleToggleStatus = (id: string) => {
-    setUsers(users.map(u => 
-      u.id === id ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' } : u
-    ))
+  const handleToggleStatus = async (id: number) => {
+    // This would require a backend endpoint to toggle user status
+    // For now, we'll just show an alert
+    alert('User status toggle not implemented yet')
+  }
+
+  if (loading) {
+    return (
+      <div className="user-management">
+        <div style={{ padding: '24px', textAlign: 'center' }}>Loading users...</div>
+      </div>
+    )
   }
 
   return (
@@ -69,7 +95,6 @@ function UserManagement() {
           <option>Admin</option>
           <option>Manager</option>
           <option>Warehouse</option>
-          <option>Driver</option>
           <option>Assistant</option>
         </select>
         <select className="filter-select">
@@ -93,11 +118,11 @@ function UserManagement() {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id}>
+              <tr key={user.user_id}>
                 <td>
                   <div className="user-cell">
-                    <div className="user-avatar">{user.name.charAt(0)}</div>
-                    <span>{user.name}</span>
+                    <div className="user-avatar">{user.user_name.charAt(0)}</div>
+                    <span>{user.user_name}</span>
                   </div>
                 </td>
                 <td className="text-muted">{user.email}</td>
@@ -106,19 +131,19 @@ function UserManagement() {
                 </td>
                 <td>
                   <button
-                    className={`status-badge ${user.status === 'active' ? 'active' : 'inactive'}`}
-                    onClick={() => handleToggleStatus(user.id)}
+                    className="status-badge active"
+                    onClick={() => handleToggleStatus(user.user_id)}
                   >
                     <span className="status-dot"></span>
-                    {user.status}
+                    Active
                   </button>
                 </td>
-                <td className="text-muted">{user.lastLogin}</td>
+                <td className="text-muted">Recently</td>
                 <td>
                   <div className="action-buttons">
                     <button className="btn-icon" title="Edit">✏️</button>
                     <button className="btn-icon" title="Reset Password">🔑</button>
-                    <button className="btn-icon btn-danger" title="Delete" onClick={() => handleDeleteUser(user.id)}>🗑️</button>
+                    <button className="btn-icon btn-danger" title="Delete" onClick={() => handleDeleteUser(user.user_id)}>🗑️</button>
                   </div>
                 </td>
               </tr>
@@ -165,7 +190,6 @@ function UserManagement() {
                   <option>Admin</option>
                   <option>Manager</option>
                   <option>Warehouse</option>
-                  <option>Driver</option>
                   <option>Assistant</option>
                 </select>
               </div>

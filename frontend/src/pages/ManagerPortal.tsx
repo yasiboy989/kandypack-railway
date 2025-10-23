@@ -11,7 +11,7 @@ function ManagerPortal() {
     <PortalLayout
       userType="manager"
       userName="Jane Smith"
-      userEmail="jane.smith@dashdark.com"
+      userEmail="jane.smith@kandypack.com"
     >
       <Routes>
         <Route path="/" element={<ManagerDashboard />} />

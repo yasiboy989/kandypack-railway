@@ -216,3 +216,40 @@ class AuditLog(BaseModel):
     performed_by: Optional[int] = None
     performed_at: datetime
     row_data: Optional[dict] = None
+
+# Dashboard schemas
+class AdminDashboardStats(BaseModel):
+    total_orders: int
+    pending_orders: int
+    delivered_orders: int
+    active_users: int
+    train_utilization: float
+    truck_utilization: float
+    staff_active: int
+
+class ManagerDashboardStats(BaseModel):
+    active_train_trips: int
+    active_truck_routes: int
+    pending_orders: int
+    on_time_rate: float
+    upcoming_trips: List[dict]
+    pending_orders_details: List[dict]
+
+class CustomerDashboardStats(BaseModel):
+    total_orders: int
+    active_orders: int
+    recent_orders: List[dict]
+
+class OrderDetails(BaseModel):
+    order_id: int
+    status: str
+    order_date: str
+    schedule_date: str
+    customer_name: str
+    customer_city: str
+    delivery_date_time: Optional[str] = None
+    delivery_status: Optional[str] = None
+    items: List[dict]
+
+class OrderStatusUpdate(BaseModel):
+    status: str

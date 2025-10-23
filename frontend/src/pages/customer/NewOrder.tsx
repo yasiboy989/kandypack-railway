@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import './NewOrder.css'
-import { getProducts, type Product } from '../../lib/api'
+import { getProducts, type Product, createCustomerOrder } from '../../lib/api'
+import { PlusIcon } from '../../components/Icons'
+import { useAuth } from '../../context/AuthContext'
 
 interface OrderItem {
   id: string
@@ -10,6 +12,7 @@ interface OrderItem {
 }
 
 function NewOrder() {
+  const { user } = useAuth()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
     { id: '1', product: '', quantity: 1, price: 0 }
   ])
@@ -19,6 +22,7 @@ function NewOrder() {
   const [files, setFiles] = useState<File[]>([])
   const [products, setProducts] = useState<{ id: string; name: string; price: number }[]>([])
   const [loadingProducts, setLoadingProducts] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -75,7 +79,7 @@ function NewOrder() {
     return orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!deliveryDate) {
@@ -88,16 +92,44 @@ function NewOrder() {
       return
     }
 
-    console.log('Order submitted:', {
-      items: orderItems,
-      deliveryDate,
-      deliveryAddress,
-      notes,
-      files,
-      total: calculateTotal()
-    })
+    if (!user) {
+      alert('Please log in to place an order')
+      return
+    }
 
-    alert('Order placed successfully! Order ID: #' + Math.floor(Math.random() * 10000))
+    setSubmitting(true)
+
+    try {
+      const orderData = {
+        scheduleDate: deliveryDate,
+        items: orderItems.map(item => ({
+          productID: parseInt(item.product),
+          quantity: item.quantity
+        }))
+      }
+
+      // For now, we'll use a placeholder customer ID since we need to get it from the user
+      // In a real implementation, you'd get the customer ID from the user's profile
+      const customerId = 1 // This should be retrieved from user context
+      
+      const result = await createCustomerOrder(customerId, orderData)
+      
+      console.log('Order submitted successfully:', result)
+      alert(`Order placed successfully! Order ID: #${result.order_id}`)
+      
+      // Reset form
+      setOrderItems([{ id: '1', product: '', quantity: 1, price: 0 }])
+      setDeliveryDate('')
+      setDeliveryAddress('')
+      setNotes('')
+      setFiles([])
+      
+    } catch (error) {
+      console.error('Order submission failed:', error)
+      alert('Failed to place order. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -177,7 +209,7 @@ function NewOrder() {
           </div>
 
           <button type="button" onClick={addItem} className="btn-add-item" disabled={products.length === 0}>
-            ➕ Add Another Item
+            <PlusIcon size={16} /> Add Another Item
           </button>
         </div>
 
@@ -278,8 +310,8 @@ function NewOrder() {
             </div>
           </div>
 
-          <button type="submit" className="btn-submit-order" disabled={products.length === 0}>
-            {products.length === 0 ? 'No products available' : 'Place Order →'}
+          <button type="submit" className="btn-submit-order" disabled={products.length === 0 || submitting}>
+            {submitting ? 'Placing Order...' : products.length === 0 ? 'No products available' : 'Place Order →'}
           </button>
         </div>
       </form>

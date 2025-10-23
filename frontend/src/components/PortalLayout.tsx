@@ -4,7 +4,7 @@ import './PortalLayout.css'
 
 interface PortalLayoutProps {
   children: ReactNode
-  userType: 'admin' | 'manager' | 'warehouse' | 'driver' | 'assistant' | 'customer'
+  userType: 'admin' | 'manager' | 'warehouse' | 'assistant' | 'customer'
   userName: string
   userEmail: string
   userAvatar?: string

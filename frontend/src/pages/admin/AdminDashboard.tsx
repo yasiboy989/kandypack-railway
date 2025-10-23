@@ -1,12 +1,43 @@
 import './AdminDashboard.css'
+import { HeartIcon, CartIcon, PackageIcon, MoneyIcon } from '../../components/Icons'
+import { useEffect, useState } from 'react'
+import { getAdminDashboardStats, type AdminDashboardStats } from '../../lib/api'
 
 function AdminDashboard() {
-  const stats = [
-    { label: 'Total Orders', value: '50.8K', change: '+28.4%', trend: 'up', icon: '❤️' },
-    { label: 'Pending Orders', value: '23.6K', change: '-12.6%', trend: 'down', icon: '🛒' },
-    { label: 'Delivered', value: '756', change: '+3.1%', trend: 'up', icon: '📦' },
-    { label: 'Active Users', value: '2.3K', change: '+11.3%', trend: 'up', icon: '💰' },
-  ]
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let mounted = true
+    getAdminDashboardStats()
+      .then((data) => {
+        if (!mounted) return
+        setStats(data)
+      })
+      .catch((err) => {
+        console.error('Failed to load admin dashboard stats:', err)
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+    
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const statsCards = stats ? [
+    { label: 'Total Orders', value: stats.total_orders.toLocaleString(), change: '+28.4%', trend: 'up', icon: HeartIcon },
+    { label: 'Pending Orders', value: stats.pending_orders.toLocaleString(), change: '-12.6%', trend: 'down', icon: CartIcon },
+    { label: 'Delivered', value: stats.delivered_orders.toLocaleString(), change: '+3.1%', trend: 'up', icon: PackageIcon },
+    { label: 'Active Users', value: stats.active_users.toLocaleString(), change: '+11.3%', trend: 'up', icon: MoneyIcon },
+  ] : []
+
+  const systemStats = stats ? [
+    { label: 'Train Utilization', value: Math.round(stats.train_utilization), max: 100 },
+    { label: 'Truck Utilization', value: Math.round(stats.truck_utilization), max: 100 },
+    { label: 'Staff Active', value: stats.staff_active, max: 200 },
+  ] : []
 
   const recentAlerts = [
     { type: 'error', message: 'Failed delivery in Route #123', time: '2 mins ago' },
@@ -14,11 +45,13 @@ function AdminDashboard() {
     { type: 'info', message: 'New staff member registered', time: '1 hour ago' },
   ]
 
-  const systemStats = [
-    { label: 'Train Utilization', value: 85, max: 100 },
-    { label: 'Truck Utilization', value: 72, max: 100 },
-    { label: 'Staff Active', value: 156, max: 200 },
-  ]
+  if (loading) {
+    return (
+      <div className="admin-dashboard">
+        <div style={{ padding: '24px', textAlign: 'center' }}>Loading dashboard...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="admin-dashboard">
@@ -28,20 +61,25 @@ function AdminDashboard() {
       </div>
 
       <div className="stats-grid">
-        {stats.map((stat, index) => (
-          <div key={index} className="stat-card">
-            <div className="stat-header">
-              <span className="stat-icon">{stat.icon}</span>
-              <span className="stat-label">{stat.label}</span>
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stat.value}</div>
-              <div className={`stat-change ${stat.trend === 'up' ? 'positive' : 'negative'}`}>
-                {stat.change} {stat.trend === 'up' ? '↗' : '↘'}
+        {statsCards.map((stat, index) => {
+          const IconComponent = stat.icon
+          return (
+            <div key={index} className="stat-card">
+              <div className="stat-header">
+                <span className="stat-icon">
+                  <IconComponent size={24} />
+                </span>
+                <span className="stat-label">{stat.label}</span>
+              </div>
+              <div className="stat-content">
+                <div className="stat-value">{stat.value}</div>
+                <div className={`stat-change ${stat.trend === 'up' ? 'positive' : 'negative'}`}>
+                  {stat.change} {stat.trend === 'up' ? '↗' : '↘'}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="dashboard-grid">

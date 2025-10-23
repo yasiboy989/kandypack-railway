@@ -1,119 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './AuditLogs.css'
+import { getAuditLogs, type AuditLog } from '../../lib/api'
 
 function AuditLogs() {
   const [filterType, setFilterType] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [logs, setLogs] = useState<AuditLog[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const logs = [
-    {
-      id: '1',
-      timestamp: '2024-12-30 10:06:45',
-      user: 'John Carter',
-      role: 'Admin',
-      action: 'User Created',
-      target: 'New employee: Sarah Miller',
-      type: 'create',
-      ip: '192.168.1.45',
-    },
-    {
-      id: '2',
-      timestamp: '2024-12-30 09:45:22',
-      user: 'Jane Smith',
-      role: 'Manager',
-      action: 'Order Scheduled',
-      target: 'Order #1532 assigned to Route #45',
-      type: 'update',
-      ip: '192.168.1.67',
-    },
-    {
-      id: '3',
-      timestamp: '2024-12-30 09:30:15',
-      user: 'Mike Johnson',
-      role: 'Admin',
-      action: 'User Deleted',
-      target: 'Removed employee: Tom Wilson',
-      type: 'delete',
-      ip: '192.168.1.45',
-    },
-    {
-      id: '4',
-      timestamp: '2024-12-30 09:15:33',
-      user: 'John Carter',
-      role: 'Admin',
-      action: 'Login',
-      target: 'Successful authentication',
-      type: 'login',
-      ip: '192.168.1.45',
-    },
-    {
-      id: '5',
-      timestamp: '2024-12-30 08:50:11',
-      user: 'Sarah Davis',
-      role: 'Warehouse',
-      action: 'Inventory Updated',
-      target: 'Stock adjusted for Product #234',
-      type: 'update',
-      ip: '192.168.1.89',
-    },
-    {
-      id: '6',
-      timestamp: '2024-12-30 08:22:47',
-      user: 'David Lee',
-      role: 'Driver',
-      action: 'Delivery Completed',
-      target: 'Order #1529 marked as delivered',
-      type: 'update',
-      ip: '192.168.1.123',
-    },
-    {
-      id: '7',
-      timestamp: '2024-12-29 16:35:29',
-      user: 'Emma Wilson',
-      role: 'Customer',
-      action: 'Order Placed',
-      target: 'New order #1535 created',
-      type: 'create',
-      ip: '203.45.67.89',
-    },
-    {
-      id: '8',
-      timestamp: '2024-12-29 15:20:18',
-      user: 'Mike Johnson',
-      role: 'Admin',
-      action: 'System Config Changed',
-      target: 'Updated max driver hours to 40',
-      type: 'update',
-      ip: '192.168.1.45',
-    },
-  ]
+  useEffect(() => {
+    let mounted = true
+    getAuditLogs()
+      .then((logList) => {
+        if (!mounted) return
+        setLogs(logList)
+      })
+      .catch((err) => {
+        console.error('Failed to load audit logs:', err)
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+    
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const actionTypes = [
     { value: 'all', label: 'All Actions', count: logs.length },
-    { value: 'create', label: 'Create', count: logs.filter(l => l.type === 'create').length },
-    { value: 'update', label: 'Update', count: logs.filter(l => l.type === 'update').length },
-    { value: 'delete', label: 'Delete', count: logs.filter(l => l.type === 'delete').length },
-    { value: 'login', label: 'Login', count: logs.filter(l => l.type === 'login').length },
+    { value: 'INSERT', label: 'Create', count: logs.filter(l => l.operation === 'INSERT').length },
+    { value: 'UPDATE', label: 'Update', count: logs.filter(l => l.operation === 'UPDATE').length },
+    { value: 'DELETE', label: 'Delete', count: logs.filter(l => l.operation === 'DELETE').length },
   ]
 
   const filteredLogs = logs.filter(log => {
-    const matchesType = filterType === 'all' || log.type === filterType
+    const matchesType = filterType === 'all' || log.operation === filterType
     const matchesSearch = searchTerm === '' ||
-      log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.target.toLowerCase().includes(searchTerm.toLowerCase())
+      log.table_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.operation.toLowerCase().includes(searchTerm.toLowerCase())
     
     return matchesType && matchesSearch
   })
 
-  const getActionColor = (type: string) => {
-    switch (type) {
-      case 'create': return 'badge-green'
-      case 'delete': return 'badge-red'
-      case 'update': return 'badge-yellow'
-      case 'login': return 'badge-blue'
-      default: return ''
+  const getActionColor = (operation: string) => {
+    switch (operation) {
+      case 'INSERT': return 'badge-green'
+      case 'DELETE': return 'badge-red'
+      case 'UPDATE': return 'badge-yellow'
+      default: return 'badge-blue'
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="audit-logs">
+        <div style={{ padding: '24px', textAlign: 'center' }}>Loading audit logs...</div>
+      </div>
+    )
   }
 
   return (
@@ -167,29 +111,29 @@ function AuditLogs() {
         <div className="table-body">
           {filteredLogs.length > 0 ? (
             filteredLogs.map((log) => (
-              <div key={log.id} className="table-row">
+              <div key={log.audit_id} className="table-row">
                 <div className="td td-timestamp">
-                  <div className="timestamp-value">{log.timestamp}</div>
+                  <div className="timestamp-value">{new Date(log.performed_at).toLocaleString()}</div>
                 </div>
                 <div className="td td-user">
                   <div className="user-info">
-                    <div className="user-avatar-small">{log.user.charAt(0)}</div>
+                    <div className="user-avatar-small">S</div>
                     <div>
-                      <div className="user-name-small">{log.user}</div>
-                      <div className="user-role-small">{log.role}</div>
+                      <div className="user-name-small">System</div>
+                      <div className="user-role-small">System</div>
                     </div>
                   </div>
                 </div>
                 <div className="td td-action">
-                  <span className={`badge ${getActionColor(log.type)}`}>
-                    {log.action}
+                  <span className={`badge ${getActionColor(log.operation)}`}>
+                    {log.operation}
                   </span>
                 </div>
                 <div className="td td-target">
-                  <div className="target-text">{log.target}</div>
+                  <div className="target-text">{log.table_name}</div>
                 </div>
                 <div className="td td-ip">
-                  <div className="ip-text">{log.ip}</div>
+                  <div className="ip-text">-</div>
                 </div>
               </div>
             ))

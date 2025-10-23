@@ -7,9 +7,8 @@ function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
-    role: 'driver',
   })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +17,6 @@ function LoginPage() {
     admin: '/admin',
     manager: '/manager',
     warehouse: '/warehouse',
-    driver: '/driver',
     assistant: '/assistant',
     customer: '/customer',
   }
@@ -29,7 +27,7 @@ function LoginPage() {
     setSubmitting(true)
     setError(null)
     try {
-      const profile = await login(formData.email, formData.password)
+      const profile = await login(formData.username, formData.password)
       const roleKey = profile.role?.toLowerCase()
       navigate(roleRoutes[roleKey] || '/login', { replace: true })
     } catch (err) {
@@ -39,7 +37,7 @@ function LoginPage() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -56,7 +54,7 @@ function LoginPage() {
                 <div className="logo-shape logo-shape-1"></div>
                 <div className="logo-shape logo-shape-2"></div>
               </div>
-              <span className="logo-text-large">Dashdark X</span>
+              <span className="logo-text-large">Kandypack</span>
             </div>
             <h2 className="login-tagline">Logistics Management System</h2>
             <p className="login-description">
@@ -70,14 +68,14 @@ function LoginPage() {
             <form onSubmit={handleSubmit} className="login-form">
 
               <div className="form-group">
-                <label htmlFor="email">Email Address</label>
+                <label htmlFor="username">Username</label>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={formData.username}
                   onChange={handleInputChange}
-                  placeholder="Enter your email"
+                  placeholder="Enter your username"
                   required
                   className="input-field"
                 />
@@ -97,22 +95,6 @@ function LoginPage() {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="role">Role</label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className="input-field"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="manager">Logistics Manager</option>
-                  <option value="warehouse">Warehouse Staff</option>
-                  <option value="driver">Driver</option>
-                  <option value="assistant">Driver Assistant</option>
-                </select>
-              </div>
 
               <button type="submit" className="btn-submit" disabled={submitting}>
                 {submitting ? 'Signing in…' : 'Login'} →

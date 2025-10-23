@@ -1,9 +1,27 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './Sidebar.css'
 import { useAuth } from '../context/AuthContext'
+import {
+  DashboardIcon,
+  UserManagementIcon,
+  ConfigIcon,
+  ReportsIcon,
+  AuditLogsIcon,
+  TrainIcon,
+  TruckIcon,
+  PackageIcon,
+  CheckIcon,
+  NotificationIcon,
+  ProfileIcon,
+  OrderHistoryIcon,
+  PlusIcon,
+  AssignmentsIcon,
+  DeliveryIcon,
+  DispatchIcon,
+} from './Icons'
 
 interface SidebarProps {
-  userType: 'admin' | 'manager' | 'warehouse' | 'driver' | 'assistant' | 'customer'
+  userType: 'admin' | 'manager' | 'warehouse' | 'assistant' | 'customer'
   userName: string
   userEmail: string
   userAvatar?: string
@@ -11,42 +29,31 @@ interface SidebarProps {
 
 const menuItems = {
   admin: [
-    { icon: '📊', label: 'Dashboard', path: '/admin' },
-    { icon: '👥', label: 'User Management', path: '/admin/users' },
-    { icon: '⚙️', label: 'System Configuration', path: '/admin/config' },
-    { icon: '📈', label: 'Reports Center', path: '/admin/reports' },
-    { icon: '📝', label: 'Audit Logs', path: '/admin/logs' },
+    { icon: DashboardIcon, label: 'Dashboard', path: '/admin' },
+    { icon: UserManagementIcon, label: 'User Management', path: '/admin/users' },
+    { icon: ConfigIcon, label: 'System Configuration', path: '/admin/config' },
+    { icon: ReportsIcon, label: 'Reports Center', path: '/admin/reports' },
+    { icon: AuditLogsIcon, label: 'Audit Logs', path: '/admin/logs' },
   ],
   manager: [
-    { icon: '📊', label: 'Dashboard', path: '/manager' },
-    { icon: '🚂', label: 'Train Scheduling', path: '/manager/train' },
-    { icon: '🚛', label: 'Truck Scheduling', path: '/manager/truck' },
-    { icon: '📦', label: 'Orders Management', path: '/manager/orders' },
-    { icon: '📈', label: 'Reports', path: '/manager/reports' },
+    { icon: DashboardIcon, label: 'Dashboard', path: '/manager' },
+    { icon: TrainIcon, label: 'Train Scheduling', path: '/manager/train' },
+    { icon: TruckIcon, label: 'Truck Scheduling', path: '/manager/truck' },
+    { icon: PackageIcon, label: 'Orders Management', path: '/manager/orders' },
+    { icon: ReportsIcon, label: 'Reports', path: '/manager/reports' },
   ],
   warehouse: [
-    { icon: '📊', label: 'Dashboard', path: '/warehouse' },
-    { icon: '📦', label: 'Inventory Management', path: '/warehouse/inventory' },
-    { icon: '🚂', label: 'Unloading Confirmation', path: '/warehouse/unloading' },
-    { icon: '📤', label: 'Dispatch Preparation', path: '/warehouse/dispatch' },
-  ],
-  driver: [
-    { icon: '📊', label: 'Dashboard', path: '/driver' },
-    { icon: '🚛', label: 'My Deliveries', path: '/driver/deliveries' },
-    { icon: '✓', label: 'Delivery Actions', path: '/driver/actions' },
-    { icon: '🔔', label: 'Notifications', path: '/driver/notifications' },
-    { icon: '👤', label: 'Profile', path: '/driver/profile' },
+    { icon: DashboardIcon, label: 'Dashboard', path: '/warehouse' },
   ],
   assistant: [
-    { icon: '📋', label: 'My Assignments', path: '/assistant' },
-    { icon: '✓', label: 'Delivery Confirmation', path: '/assistant/confirmation' },
-    { icon: '🔔', label: 'Notifications', path: '/assistant/notifications' },
+    { icon: AssignmentsIcon, label: 'My Assignments', path: '/assistant/assignments' },
+    { icon: CheckIcon, label: 'Delivery Confirmation', path: '/assistant/confirmation' },
+    { icon: NotificationIcon, label: 'Notifications', path: '/assistant/notifications' },
   ],
   customer: [
-    { icon: '📊', label: 'Dashboard', path: '/customer' },
-    { icon: '➕', label: 'Place New Order', path: '/customer/new-order' },
-    { icon: '📜', label: 'Order History', path: '/customer/history' },
-    { icon: '⚙️', label: 'Profile Settings', path: '/customer/settings' },
+    { icon: DashboardIcon, label: 'Dashboard', path: '/customer' },
+    { icon: PlusIcon, label: 'Place New Order', path: '/customer/new-order' },
+    { icon: OrderHistoryIcon, label: 'Order History', path: '/customer/history' },
   ],
 }
 
@@ -58,7 +65,7 @@ function LogoutButton() {
     navigate('/login')
   }
   return (
-    <button className="logout-btn" onClick={handle}>
+    <button className="logout-btn btn-logout-primary" onClick={handle}>
       Logout
     </button>
   )
@@ -76,7 +83,7 @@ function Sidebar({ userType, userName, userEmail, userAvatar }: SidebarProps) {
             <div className="logo-shape logo-shape-1"></div>
             <div className="logo-shape logo-shape-2"></div>
           </div>
-          <span className="logo-text">Dashdark X</span>
+          <span className="logo-text">Kandypack</span>
         </div>
       </div>
 
@@ -85,26 +92,24 @@ function Sidebar({ userType, userName, userEmail, userAvatar }: SidebarProps) {
       </div>
 
       <nav className="sidebar-nav">
-        {items.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span className="nav-label">{item.label}</span>
-          </Link>
-        ))}
+        {items.map((item) => {
+          const IconComponent = item.icon
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+            >
+              <span className="nav-icon">
+                <IconComponent size={18} />
+              </span>
+              <span className="nav-label">{item.label}</span>
+            </Link>
+          )
+        })}
       </nav>
 
       <div className="sidebar-divider"></div>
-
-      <div className="sidebar-settings">
-        <Link to={`/${userType}/settings`} className="nav-item">
-          <span className="nav-icon">⚙️</span>
-          <span className="nav-label">Settings</span>
-        </Link>
-      </div>
 
       <div className="sidebar-user">
         <div className="user-avatar">

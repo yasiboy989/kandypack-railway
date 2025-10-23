@@ -17,7 +17,6 @@ function CustomerLogin() {
     admin: '/admin',
     manager: '/manager',
     warehouse: '/warehouse',
-    driver: '/driver',
     assistant: '/assistant',
     customer: '/customer',
     customerrep: '/customer',
@@ -82,7 +81,7 @@ function CustomerLogin() {
                 <div className="logo-shape logo-shape-1"></div>
                 <div className="logo-shape logo-shape-2"></div>
               </div>
-              <span className="logo-text-large">Dashdark X</span>
+              <span className="logo-text-large">Kandypack</span>
             </div>
             <h2 className="login-tagline">Customer Portal</h2>
             <p className="login-description">Access your orders, track deliveries and manage your account.</p>
