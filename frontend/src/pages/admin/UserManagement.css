@@ -2,6 +2,66 @@
   width: 100%;
 }
 
+.management-header {
+  margin-bottom: 32px;
+}
+
+.management-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.management-header .page-subtitle {
+  color: var(--neutral-400);
+  font-size: 14px;
+}
+
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--secondary-color-4);
+}
+
+.tab-button {
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: var(--neutral-400);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: -1px;
+}
+
+.tab-button:hover {
+  color: var(--neutral-100);
+}
+
+.tab-button.active {
+  color: var(--primary-color-1);
+  border-bottom-color: var(--primary-color-1);
+}
+
+.tab-content {
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -79,6 +139,10 @@
   padding: 16px;
   font-size: 14px;
   color: var(--neutral-100);
+}
+
+.text-muted {
+  color: var(--neutral-400) !important;
 }
 
 .user-cell {
@@ -244,6 +308,55 @@
   color: var(--neutral-100);
   font-size: 14px;
   font-weight: 500;
+}
+
+.input-field {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 0.6px solid var(--secondary-color-4);
+  background: var(--neutral-700);
+  color: var(--neutral-100);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.input-field::placeholder {
+  color: var(--neutral-400);
+}
+
+.input-field:focus {
+  border-color: var(--primary-color-1);
+  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
+}
+
+.input-field[type="password"],
+.input-field[type="email"],
+.input-field[type="text"] {
+  width: 100%;
+}
+
+select.input-field {
+  cursor: pointer;
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23a0aec0' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 40px;
+}
+
+select.input-field option {
+  background: var(--neutral-700);
+  color: var(--neutral-100);
+  padding: 8px;
+}
+
+select.input-field:focus {
+  border-color: var(--primary-color-1);
+  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
 }
 
 .modal-actions {

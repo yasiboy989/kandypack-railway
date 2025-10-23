@@ -476,7 +476,7 @@ def get_quarterly_sales():
                 EXTRACT(YEAR FROM o.order_date) AS year,
                 EXTRACT(QUARTER FROM o.order_date) AS quarter,
                 COALESCE(SUM(oi.quantity * p.unit_price),0) AS totals
-            FROM "Order" o
+            FROM "order" o
             JOIN order_item oi ON o.order_id = oi.order_id
             JOIN product p ON oi.product_id = p.product_id
             GROUP BY year, quarter

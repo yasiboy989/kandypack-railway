@@ -2,14 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { UserProfile } from '../lib/api'
 import { getProfile, loginWithPassword, logout as apiLogout, setAuthToken, getAuthToken } from '../lib/api'
 
-interface AuthContextValue {
+export interface AuthContextValue {
   user: UserProfile | null
   loading: boolean
   login: (username: string, password: string) => Promise<UserProfile>
   logout: () => void
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)

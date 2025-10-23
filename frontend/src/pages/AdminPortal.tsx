@@ -1,8 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import PortalLayout from '../components/PortalLayout'
 import AdminDashboard from './admin/AdminDashboard'
-import UserManagement from './admin/UserManagement'
-import SystemConfig from './admin/SystemConfig'
+import UserAndRoleManagement from './admin/UserAndRoleManagement'
 import ReportsCenter from './admin/ReportsCenter'
 import AuditLogs from './admin/AuditLogs'
 
@@ -15,8 +14,7 @@ function AdminPortal() {
     >
       <Routes>
         <Route path="/" element={<AdminDashboard />} />
-        <Route path="/users" element={<UserManagement />} />
-        <Route path="/config" element={<SystemConfig />} />
+        <Route path="/users" element={<UserAndRoleManagement />} />
         <Route path="/reports" element={<ReportsCenter />} />
         <Route path="/logs" element={<AuditLogs />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />

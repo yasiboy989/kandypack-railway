@@ -40,13 +40,14 @@ class UserCreate(BaseModel):
     email: EmailStr
     role: str
     password: str
-    employee_id: int
+    employee_id: Optional[int] = None
 
 class UserResponse(BaseModel):
     user_id: int
     user_name: str
     email: EmailStr
     role: str
+    customer_id: Optional[int] = None
 
 class UserPorfileUpdate(BaseModel):
     email: EmailStr

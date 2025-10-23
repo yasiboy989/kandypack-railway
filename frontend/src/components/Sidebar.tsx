@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import {
   DashboardIcon,
   UserManagementIcon,
-  ConfigIcon,
   ReportsIcon,
   AuditLogsIcon,
   TrainIcon,
@@ -30,8 +29,7 @@ interface SidebarProps {
 const menuItems = {
   admin: [
     { icon: DashboardIcon, label: 'Dashboard', path: '/admin' },
-    { icon: UserManagementIcon, label: 'User Management', path: '/admin/users' },
-    { icon: ConfigIcon, label: 'System Configuration', path: '/admin/config' },
+    { icon: UserManagementIcon, label: 'User & Role Management', path: '/admin/users' },
     { icon: ReportsIcon, label: 'Reports Center', path: '/admin/reports' },
     { icon: AuditLogsIcon, label: 'Audit Logs', path: '/admin/logs' },
   ],

@@ -126,6 +126,7 @@ export interface UserProfile {
   user_name: string
   email: string
   role: string
+  customer_id?: number
 }
 
 export async function loginWithPassword(username: string, password: string) {
@@ -193,6 +194,16 @@ export async function getOrders() {
     return Array.isArray(res) ? res : []
   } catch (err) {
     console.warn('getOrders failed, returning empty list:', err)
+    return [] as OrderSummary[]
+  }
+}
+
+export async function getOrdersByUser(userId: number) {
+  try {
+    const res = await apiFetch<OrderSummary[]>(`/orders/by-user/${userId}`)
+    return Array.isArray(res) ? res : []
+  } catch (err) {
+    console.warn('getOrdersByUser failed, returning empty list:', err)
     return [] as OrderSummary[]
   }
 }
@@ -462,6 +473,45 @@ export async function getDriverHoursReport() {
   }
 }
 
+// Dashboard chart data
+export interface ChartDataResponse {
+  revenue: {
+    total: number
+    monthly_data: Record<string, { current_clients: number; subscribers: number; new_customers: number }>
+    growth_percent: number
+  }
+  revenue_analysis: {
+    total: number
+    by_type: Record<string, { revenue: number; orders: number }>
+    wholesale: { revenue: number; orders: number; percent: number }
+    retail: { revenue: number; orders: number; percent: number }
+  }
+}
+
+export interface DashboardAlert {
+  type: 'error' | 'warning' | 'info'
+  message: string
+  time: string
+}
+
+export async function getAdminChartData() {
+  try {
+    return await apiFetch<ChartDataResponse>('/dashboard/admin-chart-data')
+  } catch (err) {
+    console.warn('getAdminChartData failed:', err)
+    throw err
+  }
+}
+
+export async function getAdminAlerts() {
+  try {
+    return await apiFetch<DashboardAlert[]>('/dashboard/admin-alerts')
+  } catch (err) {
+    console.warn('getAdminAlerts failed:', err)
+    throw err
+  }
+}
+
 // Materialized Views Reports
 export interface TrainCapacityUtilization {
   train_trip_id: number
@@ -582,5 +632,49 @@ export async function getInventoryAlerts() {
   } catch (err) {
     console.warn('getInventoryAlerts failed:', err)
     return []
+  }
+}
+
+// Role management
+export interface Role {
+  role_id: number
+  role_name: string
+  accessRights?: string
+  access_rights?: string
+}
+
+export async function getRoles() {
+  try {
+    return await apiFetch<Role[]>('/roles')
+  } catch (err) {
+    console.warn('getRoles failed:', err)
+    return []
+  }
+}
+
+export async function createRole(roleData: { role_name: string; accessRights: string }) {
+  try {
+    return await apiFetch<Role>('/roles', { method: 'POST', body: roleData })
+  } catch (err) {
+    console.warn('createRole failed:', err)
+    throw err
+  }
+}
+
+export async function updateRole(roleId: number, accessRights: string) {
+  try {
+    return await apiFetch<Role>(`/roles/${roleId}`, { method: 'PUT', body: { accessRights: accessRights } })
+  } catch (err) {
+    console.warn('updateRole failed:', err)
+    throw err
+  }
+}
+
+export async function deleteRole(roleId: number) {
+  try {
+    return await apiFetch(`/roles/${roleId}`, { method: 'DELETE' })
+  } catch (err) {
+    console.warn('deleteRole failed:', err)
+    throw err
   }
 }
