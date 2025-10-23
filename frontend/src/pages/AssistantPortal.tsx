@@ -403,7 +403,10 @@ function AssistantPortal() {
       userEmail="assistant@kandypack.com"
     >
       <Routes>
-        <Route path="/" element={<DriverAssistantDashboard />} />
+        <Route path="/" element={<MyAssignmentsTab />} />
+        <Route path="/assignments" element={<MyAssignmentsTab />} />
+        <Route path="/confirmation" element={<DeliveryConfirmationTab />} />
+        <Route path="/notifications" element={<NotificationsTab />} />
         <Route path="*" element={<Navigate to="/assistant" replace />} />
       </Routes>
     </PortalLayout>
