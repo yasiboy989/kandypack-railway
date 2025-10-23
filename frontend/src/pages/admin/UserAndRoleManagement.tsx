@@ -3,7 +3,6 @@ import './UserManagement.css'
 import {
   getUsers,
   createUser,
-  updateUser,
   deleteUser,
   getRoles,
   createRole,
@@ -88,7 +87,8 @@ function UserAndRoleManagement() {
         email: newUser.email,
         role: newUser.role,
         password: newUser.password,
-        employee_id: null,
+        // Omit when unknown; API accepts undefined
+        employee_id: undefined as number | undefined,
       }
 
       const createdUser = await createUser(userData)

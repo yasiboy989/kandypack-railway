@@ -14,6 +14,7 @@ import {
   OrderHistoryIcon,
   PlusIcon,
   AssignmentsIcon,
+  DeliveryIcon,
 } from './Icons'
 
 interface SidebarProps {

@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import './ReportsCenter.css'
 import {
-  ReportsIcon,
   MoneyIcon,
   PackageIcon,
   TimerIcon,
-  TruckIcon,
   TrainIcon,
 } from '../../components/Icons'
 import {
@@ -24,6 +22,8 @@ import {
 } from '../../lib/api'
 
 type ReportType = 'revenue' | 'product' | 'train' | 'delivery' | 'employee' | 'inventory'
+type ReportItem = { id: ReportType; name: string; icon: React.ComponentType<{ size?: number; className?: string }> }
+type ReportCategory = { category: string; items: ReportItem[] }
 
 function ReportsCenter() {
   const [selectedReport, setSelectedReport] = useState<ReportType>('revenue')
@@ -38,7 +38,7 @@ function ReportsCenter() {
   const [employeeData, setEmployeeData] = useState<EmployeeWorkload[]>([])
   const [inventoryData, setInventoryData] = useState<InventoryAlert[]>([])
 
-  const reports = [
+  const reports: ReportCategory[] = [
     {
       category: 'Financial Reports',
       items: [
@@ -389,7 +389,7 @@ function ReportsCenter() {
         <div className="reports-main">
           <div className="report-viewer">
             <div className="report-header-info">
-              <h2>{reports.flatMap(c => c.items).find(i => i.id === selectedReport)?.name}</h2>
+              <h2>{reports.flatMap((c) => c.items).find((i) => i.id === selectedReport)?.name}</h2>
               <p className="report-description">
                 {selectedReport === 'revenue' && 'Revenue breakdown by customer type and time period'}
                 {selectedReport === 'product' && 'Product sales performance and stock status'}

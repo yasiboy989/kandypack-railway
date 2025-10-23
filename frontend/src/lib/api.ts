@@ -126,6 +126,7 @@ export interface UserProfile {
   user_name: string
   email: string
   role: string
+  employee_id?: number
   customer_id?: number
 }
 

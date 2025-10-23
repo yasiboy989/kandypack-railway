@@ -1,6 +1,6 @@
 import './WarehouseDashboard.css'
 import { useEffect, useState } from 'react'
-import { BoxesIcon, PackageIcon, AlertTriangleIcon, TrendingDownIcon } from '../../components/Icons'
+import { BoxesIcon, PackageIcon, AlertTriangleIcon } from '../../components/Icons'
 import { getWarehouseManagerStats, type WarehouseManagerStats } from '../../lib/api'
 
 function WarehouseDashboard() {
