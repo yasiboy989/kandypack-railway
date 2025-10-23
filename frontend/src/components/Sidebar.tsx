@@ -11,16 +11,13 @@ import {
   PackageIcon,
   CheckIcon,
   NotificationIcon,
-  ProfileIcon,
   OrderHistoryIcon,
   PlusIcon,
   AssignmentsIcon,
-  DeliveryIcon,
-  DispatchIcon,
 } from './Icons'
 
 interface SidebarProps {
-  userType: 'admin' | 'manager' | 'warehouse' | 'assistant' | 'customer'
+  userType: 'admin' | 'manager' | 'warehouse' | 'assistant' | 'customer' | 'driver'
   userName: string
   userEmail: string
   userAvatar?: string
@@ -46,6 +43,9 @@ const menuItems = {
     { icon: ReportsIcon, label: 'Stock Reports', path: '/warehouse/reports' },
     { icon: DeliveryIcon, label: 'Store Stock View', path: '/warehouse/store-stock' },
     { icon: NotificationIcon, label: 'Stock Alerts', path: '/warehouse/alerts' },
+  ],
+  driver: [
+    { icon: DashboardIcon, label: 'Dashboard', path: '/driver' },
   ],
   assistant: [
     { icon: AssignmentsIcon, label: 'My Assignments', path: '/assistant/assignments' },

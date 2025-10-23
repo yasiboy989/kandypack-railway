@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import './UserManagement.css'
-import { getUsers, createUser, updateUser, deleteUser, type User } from '../../lib/api'
+import { getUsers, createUser, deleteUser, type User } from '../../lib/api'
 
 function UserManagement() {
   const [users, setUsers] = useState<User[]>([])
@@ -40,7 +40,7 @@ function UserManagement() {
         email: newUser.email,
         role: newUser.role,
         password: newUser.password,
-        employee_id: null
+        // omit employee_id to satisfy type (optional on client). Backend may require mapping later.
       }
       
       const createdUser = await createUser(userData)
@@ -65,7 +65,7 @@ function UserManagement() {
     }
   }
 
-  const handleToggleStatus = async (id: number) => {
+  const handleToggleStatus = async (_id: number) => {
     // This would require a backend endpoint to toggle user status
     // For now, we'll just show an alert
     alert('User status toggle not implemented yet')
