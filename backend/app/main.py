@@ -33,3 +33,12 @@ app.include_router(logistics.report_router)
 
 # WebSocket router
 app.include_router(websockets.router)
+
+# Basic health endpoints for platform health checks and quick verification
+@app.get("/", tags=["Health"]) 
+def root():
+    return {"status": "ok", "service": "kandypack-backend"}
+
+@app.get("/healthz", tags=["Health"]) 
+def healthz():
+    return {"status": "ok"}
